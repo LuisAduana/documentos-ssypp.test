@@ -35,8 +35,8 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function alumno()
+    public function profesor()
     {
-        return $this->hasOne('App\Models\Alumno', 'user_id');
+        return $this->hasOne(Profesor::class, 'users_id');
     }
 }

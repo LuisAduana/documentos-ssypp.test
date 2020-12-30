@@ -26,6 +26,8 @@ Route::prefix('administrador')->group(function() {
     // Por seguridad esta ruta está inhabilitada y no se pueda acceder al registro de un nuevo administrador
     // si desea registrar un nuevo administrador descomente esta ruta
     // Route::post('registro', [AdministradorController::class, 'registro']);
+    Route::get('obtener-coordinadores', [AdministradorController::class, 'obtenerCoordinadores']);
+    Route::post('registrar-coordinador', [AdministradorController::class, 'registrarCoordinador']);
     
 });
 
