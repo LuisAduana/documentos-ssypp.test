@@ -28,6 +28,7 @@ Route::prefix('administrador')->group(function() {
     // Route::post('registro', [AdministradorController::class, 'registro']);
     Route::get('obtener-coordinadores', [AdministradorController::class, 'obtenerCoordinadores']);
     Route::post('registrar-coordinador', [AdministradorController::class, 'registrarCoordinador']);
+    Route::post('activar-desactivar-coordinador', [AdministradorController::class, 'activarDesactivarCoordinador']);
     
 });
 

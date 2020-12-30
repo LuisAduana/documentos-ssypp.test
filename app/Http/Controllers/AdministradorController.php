@@ -50,8 +50,8 @@ class AdministradorController extends Controller
         });
     }
 
-    public function desactivarCoordinador(Request $request) {
-        User::update('update users set estado = ? where correo = ?', ["DESACTIVADO", $request->correo]);
+    public function activarDesactivarCoordinador(Request $request) {
+        DB::update('update users set estado = ? where correo = ?', [$request->estado, $request->correo]);
     }
 
     public function obtenerCoordinadores(Request $request)
