@@ -2,8 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AdministradorController;
+use App\Http\Controllers\CoordinadorController;
+use App\Http\Controllers\LoginController;
 
 
 
@@ -29,7 +30,12 @@ Route::prefix('administrador')->group(function() {
     Route::get('obtener-coordinadores', [AdministradorController::class, 'obtenerCoordinadores']);
     Route::post('registrar-coordinador', [AdministradorController::class, 'registrarCoordinador']);
     Route::put('modificar-coordinador', [AdministradorController::class, 'modificarCoordinador']);
-    Route::post('activar-desactivar-coordinador', [AdministradorController::class, 'activarDesactivarCoordinador']);
+    Route::put('activar-desactivar-coordinador', [AdministradorController::class, 'activarDesactivarCoordinador']);
+});
+
+Route::prefix('coordinador')->group(function() {
+    Route::get('obtener-dependencias', [CoordinadorController::class, 'obtenerDependencias']);
+    Route::post('registrar-dependencia', [CoordinadorController::class, 'registrarDependencia']);
 });
 
 Route::post('login', [LoginController::class, 'login']);

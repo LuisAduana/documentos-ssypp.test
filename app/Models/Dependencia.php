@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Profesor extends Model
+class Dependencia extends Model
 {
     public $timestamps = false;
-    public $table = "profesor";
+    public $table = "dependencia";
     use HasFactory;
 
     /**
@@ -18,12 +18,15 @@ class Profesor extends Model
      */
     protected $fillable = [
         'id',
-        'num_personal'.
-        'users_id'
+        'nombre_dependencia',
+        'nombre_contacto',
+        'direccion',
+        'ciudad',
+        'correo',
+        'num_contacto',
+        'sector',
+        'num_us_directos',
+        'num_us_indirectos',
+        'estado'
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 }
