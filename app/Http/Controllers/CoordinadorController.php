@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Dependencia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CoordinadorController extends Controller
 {
@@ -33,6 +34,10 @@ class CoordinadorController extends Controller
             'num_us_indirectos' => $request->num_us_indirectos,
             'estado' => $request->estado
         ]);
+    }
+
+    public function activarDesactivarDependencia(Request $request) {
+        DB::update('update dependencia set estado = ? where id = ?', [$request->estado, $request->id]);
     }
 
     public function obtenerDependencias(Request $request) {

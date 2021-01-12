@@ -20,7 +20,6 @@ class CreateAlumnoTable extends Migration
             $table->string('seccion', 1);
             $table->foreignId('users_id')->constrained('users');
             $table->foreignId('profesor_id')->constrained('profesor');
-            $table->foreignId('proyecto_id')->constrained('proyecto');
         });
     }
 
