@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Dependencia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class CoordinadorController extends Controller
 {
@@ -33,6 +34,35 @@ class CoordinadorController extends Controller
             'num_us_directos' => $request->num_us_directos,
             'num_us_indirectos' => $request->num_us_indirectos,
             'estado' => $request->estado
+        ]);
+    }
+
+    public function modificarDependencia(Request $request) {
+        $rules = [
+            'nombre_dependencia' => ['required', 'max:2300', Rule::unique('dependencia')->ignore($request->id)],
+            'nombre_contacto' => ['required', 'max:200', 'min:1'],
+            'direccion' => ['required', 'max:250', 'min:1'],
+            'ciudad' => ['required', 'max:120', 'min:1'],
+            'correo' => ['required', 'max:130', 'email'],
+            'num_contacto' => ['required', 'max:20', 'min:10'],
+            'sector' => ['required', 'max:50', 'min:1'],
+            'num_us_directos' => ['required', 'max:30', 'min:1'],
+            'num_us_indirectos' => ['required', 'max:30', 'min:1'],
+            'estado' => ['required', 'max:15', 'min:1']
+        ];
+
+        $customMessages = [
+            'nombre_dependencia.unique' => 'El nombre de la dependencia ya ha sido registrado.',
+        ];
+
+        $this->validate($request, $rules, $customMessages);
+
+        DB::update('update dependencia set nombre_dependencia = ?, nombre_contacto = ?, 
+        direccion = ?, ciudad = ?, correo = ?, num_contacto = ?, sector = ?, num_us_directos = ?, 
+        num_us_indirectos = ?, estado = ? where id = ?', [
+            $request->nombre_dependencia, $request->nombre_contacto, $request->direccion, $request->ciudad,
+            $request->correo, $request->num_contacto, $request->sector, $request->num_us_directos,
+            $request->num_us_indirectos, $request->estado, $request->id
         ]);
     }
 
