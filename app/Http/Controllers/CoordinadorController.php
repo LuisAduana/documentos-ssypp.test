@@ -3,12 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dependencia;
+use App\Models\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CoordinadorController extends Controller
 {
+    public function obtenerResponsables(Request $request) {
+        $query = Responsable::all();
+        $responsables = array();
+        foreach ($query as $responsable) {
+            $localArray = array(
+                'id' => $responsable->id,
+                'nombre_responsable' => $responsable->nombre_responsable,
+                'cargo' => $responsable->cargo,
+                'correo' => $responsable->correo,
+                'num_contacto' => $responsable->num_contacto,
+                'estado' => $responsable->estado,
+                'dependencia_id' => $responsable->dependencia_id,
+                'nombre_dependencia' => $responsable->dependencia->nombre_dependencia
+            );
+            array_push($responsables, $localArray);
+        }
+        return response()->json($responsables, 200);
+    }
+
     public function registrarDependencia(Request $request) {
         $request->validate([
             'nombre_dependencia' => ['required', 'max:230', 'min:1', 'unique:dependencia'],
@@ -39,7 +59,7 @@ class CoordinadorController extends Controller
 
     public function modificarDependencia(Request $request) {
         $rules = [
-            'nombre_dependencia' => ['required', 'max:2300', Rule::unique('dependencia')->ignore($request->id)],
+            'nombre_dependencia' => ['required', 'max:230', Rule::unique('dependencia')->ignore($request->id)],
             'nombre_contacto' => ['required', 'max:200', 'min:1'],
             'direccion' => ['required', 'max:250', 'min:1'],
             'ciudad' => ['required', 'max:120', 'min:1'],
