@@ -10,6 +10,51 @@ use Illuminate\Validation\Rule;
 
 class CoordinadorController extends Controller
 {
+    public function modificarResponsable(Request $request) {
+        $rules = [
+            'nombre_responsable' => ['required', 'max:120', Rule::unique('responsable')->ignore($request->id)],
+            'cargo' => ['required', 'max:100', 'min:1'],
+            'correo' => ['required', 'email', 'max:130'],
+            'num_contacto' => ['required', 'max:20', 'min:10'],
+            'estado' => ['required', 'max:15', 'min:1'],
+            'nombre_dependencia' => ['required', 'max:230', 'min:1']
+        ];
+
+        $customMessages = [
+            'nombre_responsable.unique' => 'El nombre del responsable ya ha sido registrado.',
+        ];
+
+        $this->validate($request, $rules, $customMessages);
+
+        DB::transaction(function () use ($request) {
+            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
+            DB::update('update responsable set nombre_responsable = ?, cargo = ?, correo = ?, num_contacto = ?, estado = ?, dependencia_id = ? where id = ?', [
+                $request->nombre_responsable, $request->cargo, $request->correo, $request->num_contacto, $request->estado, $dependencia->id, $request->id
+            ]);
+        });
+    }
+
+    public function registrarResponsable(Request $request) {
+        $request->validate([
+            'nombre_responsable' => ['required', 'max:120', 'min:1', 'unique:responsable'],
+            'cargo' => ['required', 'max:100', 'min:1'],
+            'correo' => ['required', 'email', 'max:130'],
+            'num_contacto' => ['required', 'max:20', 'min:10'],
+            'estado' => ['required', 'max:11', 'min:1'],
+            'nombre_dependencia' => ['required', 'max:230', 'min:1']
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
+            DB::insert(
+                'insert into responsable (nombre_responsable, cargo, correo, 
+                num_contacto, estado, dependencia_id) values (?, ?, ?, ?, ?, ?)', [
+                $request->nombre_responsable, $request->cargo, $request->correo,
+                $request->num_contacto, $request->estado, $dependencia->id]
+            );
+        });
+    }
+
     public function obtenerResponsables(Request $request) {
         $query = Responsable::all();
         $responsables = array();
@@ -88,6 +133,15 @@ class CoordinadorController extends Controller
 
     public function activarDesactivarDependencia(Request $request) {
         DB::update('update dependencia set estado = ? where id = ?', [$request->estado, $request->id]);
+    }
+
+    public function obtenerNombresDependencias(Request $request) {
+        $resultado = DB::select('select nombre_dependencia from dependencia where estado = ?', ["ACTIVO"]);
+        $nombres = array();
+        foreach ($resultado as $dependencia) {
+            array_push($nombres, $dependencia->nombre_dependencia);
+        }
+        return response()->json($nombres, 200);
     }
 
     public function obtenerDependencias(Request $request) {

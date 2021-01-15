@@ -39,6 +39,10 @@ Route::prefix('coordinador')->group(function() {
     Route::put('activar-desactivar-dependencia', [CoordinadorController::class, 'activarDesactivarDependencia']);
     Route::put('modificar-dependencia', [CoordinadorController::class, 'modificarDependencia']);
     Route::get('obtener-responsables', [CoordinadorController::class, 'obtenerResponsables']);
+    Route::post('registrar-responsable', [CoordinadorController::class, 'registrarResponsable']);
+    Route::put('modificar-responsable', [CoordinadorController::class, 'modificarResponsable']);
+
+    Route::get('obtener-nombres-dependencias', [CoordinadorController::class, 'obtenerNombresDependencias']);
 });
 
 Route::post('login', [LoginController::class, 'login']);
