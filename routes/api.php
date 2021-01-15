@@ -41,6 +41,7 @@ Route::prefix('coordinador')->group(function() {
     Route::get('obtener-responsables', [CoordinadorController::class, 'obtenerResponsables']);
     Route::post('registrar-responsable', [CoordinadorController::class, 'registrarResponsable']);
     Route::put('modificar-responsable', [CoordinadorController::class, 'modificarResponsable']);
+    Route::put('activar-desactivar-responsable', [CoordinadorController::class, 'activarDesactivarResponsable']);
 
     Route::get('obtener-nombres-dependencias', [CoordinadorController::class, 'obtenerNombresDependencias']);
 });

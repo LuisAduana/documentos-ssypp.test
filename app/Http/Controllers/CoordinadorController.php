@@ -55,6 +55,10 @@ class CoordinadorController extends Controller
         });
     }
 
+    public function activarDesactivarResponsable(Request $request) {
+        DB::update('update responsable set estado = ? where id = ?', [$request->estado, $request->id]);
+    }
+
     public function obtenerResponsables(Request $request) {
         $query = Responsable::all();
         $responsables = array();
