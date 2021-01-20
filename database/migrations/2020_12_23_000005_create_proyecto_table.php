@@ -15,6 +15,7 @@ class CreateProyectoTable extends Migration
     {
         Schema::create('proyecto', function (Blueprint $table) {
             $table->id();
+            $table->string('estado', 11);
             $table->foreignId('inscripcion_id')->constrained('inscripcion');
             $table->foreignId('responsable_id')->constrained('responsable');
             $table->foreignId('dependencia_id')->constrained('dependencia');

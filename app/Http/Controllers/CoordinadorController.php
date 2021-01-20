@@ -4,12 +4,97 @@ namespace App\Http\Controllers;
 
 use App\Models\Dependencia;
 use App\Models\Responsable;
+use App\Models\Proyecto;
+use App\Models\ProyectoServicio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CoordinadorController extends Controller
 {
+    public function modificarProyectoServicio(Request $request) {
+        $request->validate([
+            'id' => ['required', 'min:1'],
+            'estado' => ['required', 'max:11', 'min:1'],
+            'nombre_responsable' => ['required', 'max:120', 'min:1'],
+            'nombre_dependencia' => ['required', 'max:230', 'min:1'],
+            'num_alumnos' => ['required', 'max:45', 'min:1'],
+            'actividades' => ['required', 'max:250', 'min:1'],
+            'horario' => ['required', 'max:100', 'min:1'],
+            'requisitos' => ['required', 'max:250', 'min:1']
+        ]);
+        DB::transaction(function () use ($request) {
+            $responsable = DB::table('responsable')->where('nombre_responsable', $request->nombre_responsable)->first();
+            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
+            DB::update('update proyecto set estado = ?, responsable_id = ?, dependencia_id = ? where id = ?', [
+                $request->estado, $responsable->id, $dependencia->id, $request->id
+            ]);
+            DB::update('update proyecto_servicio set num_alumnos = ?, actividades = ?, horario = ?, requisitos = ? where id = ?', [
+                $request->num_alumnos, $request->actividades, $request->horario, $request->requisitos, $request->id_proyecto_servicio
+            ]);
+        });
+    }
+
+    public function cambiarEstadoProyecto(Request $request) {
+        $request->validate([
+            'id' => ['required'],
+            'estado' => ['required', 'max:11', 'min:1']
+        ]);
+        DB::update('update proyecto set estado = ? where id = ?', [$request->estado, $request->id]);
+    }
+
+    public function registrarProyectoServicio(Request $request) {
+        $request->validate([
+            'estado' => ['required', 'max:11', 'min:1'],
+            'nombre_responsable' => ['required', 'max:120', 'min:1'],
+            'nombre_dependencia' => ['required', 'max:230', 'min:1'],
+            'num_alumnos' => ['required', 'max:45', 'min:1'],
+            'actividades' => ['required', 'max:250', 'min:1'],
+            'horario' => ['required', 'max:100', 'min:1'],
+            'requisitos' => ['required', 'max:250', 'min:1']
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', "DEFAULT")->first();
+            $responsable = DB::table('responsable')->where('nombre_responsable', $request->nombre_responsable)->first();
+            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
+            $proyecto_id = DB::table('proyecto')->insertGetId([
+                'estado' => $request->estado,
+                'inscripcion_id' => $inscripcion->id,
+                'responsable_id' => $responsable->id,
+                'dependencia_id' => $dependencia->id
+            ]);
+            DB::insert(
+                'insert into proyecto_servicio (num_alumnos, actividades, horario, requisitos, proyecto_id) values (?, ?, ?, ?, ?)',
+                [ $request->num_alumnos, $request->actividades, $request->horario, $request->requisitos, $proyecto_id ]
+            );
+        });
+    }
+
+    public function obtenerProyectosServicio(Request $request) {
+        $query = Proyecto::all();
+        $proyectos = array();
+        foreach ($query as $proyecto) {
+            $localArray = array(
+                'id' => $proyecto->id,
+                'estado' => $proyecto->estado,
+                // 'inscripcion_id' => $proyecto->inscripcion_id,
+                // 'responsable_id' => $proyecto->responsable_id,
+                // 'dependencia_id' => $proyecto->dependencia_id,
+                'id_proyecto_servicio' => $proyecto->proyectoServicio->id,
+                'nombre_dependencia' => $proyecto->dependencia->nombre_dependencia,
+                'num_alumnos' => $proyecto->proyectoServicio->num_alumnos,
+                'actividades' => $proyecto->proyectoServicio->actividades,
+                'direccion' => $proyecto->dependencia->direccion,
+                'nombre_responsable' => $proyecto->responsable->nombre_responsable,
+                'horario' => $proyecto->proyectoServicio->horario,
+                'requisitos' => $proyecto->proyectoServicio->requisitos
+            );
+            array_push($proyectos, $localArray);
+        }
+        return response()->json($proyectos, 200);
+    }
+
     public function modificarResponsable(Request $request) {
         $rules = [
             'nombre_responsable' => ['required', 'max:120', Rule::unique('responsable')->ignore($request->id)],
@@ -139,15 +224,6 @@ class CoordinadorController extends Controller
         DB::update('update dependencia set estado = ? where id = ?', [$request->estado, $request->id]);
     }
 
-    public function obtenerNombresDependencias(Request $request) {
-        $resultado = DB::select('select nombre_dependencia from dependencia where estado = ?', ["ACTIVO"]);
-        $nombres = array();
-        foreach ($resultado as $dependencia) {
-            array_push($nombres, $dependencia->nombre_dependencia);
-        }
-        return response()->json($nombres, 200);
-    }
-
     public function obtenerDependencias(Request $request) {
         $query = Dependencia::all();
         $dependencias = array();
@@ -168,5 +244,25 @@ class CoordinadorController extends Controller
             array_push($dependencias, $localArray);
         }
         return response()->json($dependencias, 200);
+    }
+
+    public function obtenerResponsablesPorDependencia(Request $request) {
+        $request->validate(['nombre_dependencia' => ['required', 'max:230', 'min:1']]);
+        $dependencia = DB::table('dependencia')->where("nombre_dependencia", $request->nombre_dependencia)->first();
+        $responsables = DB::table('responsable')->where('dependencia_id', $dependencia->id)->get();
+        $nombres = array();
+        foreach ($responsables as $responsable) {
+            array_push($nombres, $responsable->nombre_responsable);
+        }
+        return response()->json($nombres, 200);
+    }
+
+    public function obtenerNombresDependencias(Request $request) {
+        $resultado = DB::select('select nombre_dependencia from dependencia where estado = ?', ["ACTIVO"]);
+        $nombres = array();
+        foreach ($resultado as $dependencia) {
+            array_push($nombres, $dependencia->nombre_dependencia);
+        }
+        return response()->json($nombres, 200);
     }
 }

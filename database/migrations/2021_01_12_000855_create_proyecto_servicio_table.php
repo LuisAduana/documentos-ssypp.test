@@ -16,7 +16,7 @@ class CreateProyectoServicioTable extends Migration
         Schema::create('proyecto_servicio', function (Blueprint $table) {
             $table->id();
             $table->string('num_alumnos', 45);
-            $table->string('actividades', 45);
+            $table->string('actividades', 250);
             $table->string('horario', 100);
             $table->string('requisitos', 250);
             $table->foreignId('proyecto_id')->constrained('proyecto');

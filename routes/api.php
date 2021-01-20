@@ -42,8 +42,13 @@ Route::prefix('coordinador')->group(function() {
     Route::post('registrar-responsable', [CoordinadorController::class, 'registrarResponsable']);
     Route::put('modificar-responsable', [CoordinadorController::class, 'modificarResponsable']);
     Route::put('activar-desactivar-responsable', [CoordinadorController::class, 'activarDesactivarResponsable']);
+    Route::get('obtener-proyectos-servicio', [CoordinadorController::class, 'obtenerProyectosServicio']);
+    Route::post('registrar-proyecto-servicio', [CoordinadorController::class, 'registrarProyectoServicio']);
+    Route::put('modificar-proyecto-servicio', [CoordinadorController::class, 'modificarProyectoServicio']);
+    Route::put('modificar-estado-proyecto', [CoordinadorController::class, 'cambiarEstadoProyecto']);
 
     Route::get('obtener-nombres-dependencias', [CoordinadorController::class, 'obtenerNombresDependencias']);
+    Route::post('obtener-responsables-por-dependencia', [CoordinadorController::class, 'obtenerResponsablesPorDependencia']);
 });
 
 Route::post('login', [LoginController::class, 'login']);

@@ -34,4 +34,9 @@ class Dependencia extends Model
     {
         return $this->hasOne(Responsable::class, 'dependencia_id');
     }
+
+    public function Proyecto()
+    {
+        return $this->hasOne(Proyecto::class, 'dependencia_id');
+    }
 }
