@@ -4,7 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdministradorController;
 use App\Http\Controllers\CoordinadorController;
+use App\Http\Controllers\DependenciaController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ResponsableController;
+use App\Http\Controllers\ProyectoServicioController;
+use App\Http\Controllers\UtilidadesController;
 
 
 
@@ -34,21 +38,24 @@ Route::prefix('administrador')->group(function() {
 });
 
 Route::prefix('coordinador')->group(function() {
-    Route::get('obtener-dependencias', [CoordinadorController::class, 'obtenerDependencias']);
-    Route::post('registrar-dependencia', [CoordinadorController::class, 'registrarDependencia']);
-    Route::put('activar-desactivar-dependencia', [CoordinadorController::class, 'activarDesactivarDependencia']);
-    Route::put('modificar-dependencia', [CoordinadorController::class, 'modificarDependencia']);
-    Route::get('obtener-responsables', [CoordinadorController::class, 'obtenerResponsables']);
-    Route::post('registrar-responsable', [CoordinadorController::class, 'registrarResponsable']);
-    Route::put('modificar-responsable', [CoordinadorController::class, 'modificarResponsable']);
-    Route::put('activar-desactivar-responsable', [CoordinadorController::class, 'activarDesactivarResponsable']);
-    Route::get('obtener-proyectos-servicio', [CoordinadorController::class, 'obtenerProyectosServicio']);
-    Route::post('registrar-proyecto-servicio', [CoordinadorController::class, 'registrarProyectoServicio']);
-    Route::put('modificar-proyecto-servicio', [CoordinadorController::class, 'modificarProyectoServicio']);
-    Route::put('modificar-estado-proyecto', [CoordinadorController::class, 'cambiarEstadoProyecto']);
+    Route::get('obtener-dependencias', [DependenciaController::class, 'obtenerDependencias']);
+    Route::post('registrar-dependencia', [DependenciaController::class, 'registrarDependencia']);
+    Route::put('modificar-dependencia', [DependenciaController::class, 'modificarDependencia']);
+    Route::put('activar-desactivar-dependencia', [DependenciaController::class, 'activarDesactivarDependencia']);
 
-    Route::get('obtener-nombres-dependencias', [CoordinadorController::class, 'obtenerNombresDependencias']);
-    Route::post('obtener-responsables-por-dependencia', [CoordinadorController::class, 'obtenerResponsablesPorDependencia']);
+
+    Route::get('obtener-responsables', [ResponsableController::class, 'obtenerResponsables']);
+    Route::post('registrar-responsable', [ResponsableController::class, 'registrarResponsable']);
+    Route::put('modificar-responsable', [ResponsableController::class, 'modificarResponsable']);
+    Route::put('activar-desactivar-responsable', [ResponsableController::class, 'activarDesactivarResponsable']);
+
+    Route::get('obtener-proyectos-servicio', [ProyectoServicioController::class, 'obtenerProyectosServicio']);
+    Route::post('registrar-proyecto-servicio', [ProyectoServicioController::class, 'registrarProyectoServicio']);
+    Route::put('modificar-proyecto-servicio', [ProyectoServicioController::class, 'modificarProyectoServicio']);
+    Route::put('modificar-estado-proyecto', [ProyectoServicioController::class, 'cambiarEstadoProyecto']);
+
+    Route::get('obtener-nombres-dependencias', [UtilidadesController::class, 'obtenerNombresDependencias']);
+    Route::post('obtener-responsables-por-dependencia', [UtilidadesController::class, 'obtenerNombresResponsablesPorDependencia']);
 });
 
 Route::post('login', [LoginController::class, 'login']);
