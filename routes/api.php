@@ -5,8 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdministradorController;
 use App\Http\Controllers\CoordinadorController;
 use App\Http\Controllers\DependenciaController;
+use App\http\Controllers\InscripcionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ResponsableController;
+use App\Http\Controllers\ProyectoPracticaController;
 use App\Http\Controllers\ProyectoServicioController;
 use App\Http\Controllers\UtilidadesController;
 
@@ -53,6 +55,14 @@ Route::prefix('coordinador')->group(function() {
     Route::post('registrar-proyecto-servicio', [ProyectoServicioController::class, 'registrarProyectoServicio']);
     Route::put('modificar-proyecto-servicio', [ProyectoServicioController::class, 'modificarProyectoServicio']);
     Route::put('modificar-estado-proyecto', [ProyectoServicioController::class, 'cambiarEstadoProyecto']);
+
+    Route::get('obtener-proyectos-practica', [ProyectoPracticaController::class, 'obtenerProyectosPractica']);
+    Route::post('registrar-proyecto-practica', [ProyectoPracticaController::class, 'registrarProyectoPractica']);
+    Route::put('modificar-proyecto-practica', [ProyectoPracticaController::class, 'modificarProyectoPractica']);
+    Route::put('modificar-estado-proyecto-practica', [ProyectoPracticaController::class, 'cambiarEstadoProyecto']);
+
+    Route::get('obtener-inscripciones', [InscripcionController::class, 'obtenerInscripciones']);
+    Route::post('registrar-inscripcion', [InscripcionController::class, 'registrarInscripcion']);
 
     Route::get('obtener-nombres-dependencias', [UtilidadesController::class, 'obtenerNombresDependencias']);
     Route::post('obtener-responsables-por-dependencia', [UtilidadesController::class, 'obtenerNombresResponsablesPorDependencia']);

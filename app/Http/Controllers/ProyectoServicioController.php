@@ -47,24 +47,26 @@ class ProyectoServicioController extends Controller
     }
 
     public function obtenerProyectosServicio(Request $request) {
-        $query = Proyecto::all();
+        $query = ProyectoServicio::all();
 
         $proyectos = array();
         foreach ($query as $proyecto) {
             $localArray = array(
                 'id' => $proyecto->id,
+                'num_alumnos' => $proyecto->num_alumnos,
+                'actividades' => $proyecto->actividades,
+                'horario' => $proyecto->horario,
+                'requisitos' => $proyecto->requisitos,
+                'proyecto_id' => $proyecto->proyecto_id,
                 'estado' => $proyecto->estado,
-                // 'inscripcion_id' => $proyecto->inscripcion_id,
-                // 'responsable_id' => $proyecto->responsable_id,
-                // 'dependencia_id' => $proyecto->dependencia_id,
-                'id_proyecto_servicio' => $proyecto->proyectoServicio->id,
-                'nombre_dependencia' => $proyecto->dependencia->nombre_dependencia,
-                'num_alumnos' => $proyecto->proyectoServicio->num_alumnos,
-                'actividades' => $proyecto->proyectoServicio->actividades,
-                'direccion' => $proyecto->dependencia->direccion,
-                'nombre_responsable' => $proyecto->responsable->nombre_responsable,
-                'horario' => $proyecto->proyectoServicio->horario,
-                'requisitos' => $proyecto->proyectoServicio->requisitos
+                'id_proyecto' => $proyecto->proyecto->id,
+                'estado' => $proyecto->proyecto->estado,
+                'inscripcion_id' => $proyecto->proyecto->inscripcion_id,
+                'responsable_id' => $proyecto->proyecto->responsable_id,
+                'dependencia_id' => $proyecto->proyecto->dependencia_id,
+                'nombre_dependencia' => $proyecto->proyecto->dependencia->nombre_dependencia,
+                'direccion' => $proyecto->proyecto->dependencia->direccion,
+                'nombre_responsable' => $proyecto->proyecto->responsable->nombre_responsable,
             );
             array_push($proyectos, $localArray);
         }

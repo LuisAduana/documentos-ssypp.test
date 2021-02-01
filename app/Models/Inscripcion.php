@@ -19,7 +19,7 @@ class Inscripcion extends Model
     protected $fillable = [
         'id',
         'token_inscripcion',
-        'inicio_inscripcion',
+        'inscripcion_inicio',
         'fin_inscripcion',
         'estado_inscripcion'
     ];

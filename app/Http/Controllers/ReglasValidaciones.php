@@ -7,6 +7,35 @@ use Illuminate\Validation\Rule;
 
 class ReglasValidaciones {
 
+    public static function getValidacionesInscripcion() {
+        return [
+            'inscripcion_inicio' => ['required', 'date_format:Y-m-d H:i:s'],
+            'fin_inscripcion' => ['required', 'date_format:Y-m-d H:i:s'],
+            'estado_inscripcion' => ['required', 'max:10', 'min:1']
+        ];
+    }
+
+    public static function getValidacionesProyectoPractica(Request $request, bool $tipo) {
+        $validaciones = self::tipoValidacion($request, $tipo, "proyecto_practica");
+        return [
+            'ip' => ['integer'],
+            'estado' => ['required', 'max:11', 'min:1'],
+            'nombre_responsable' => ['required', 'max:120', 'min:1'],
+            'nombre_dependencia' => ['required', 'max:230', 'min:1'],
+            'nombre_proyecto' => ['required', 'max:250', 'min:1', $validaciones],
+            'descripcion_general' => ['required', 'max:250', 'min:1'],
+            'objetivo_general' => ['required', 'max:250', 'min:1'],
+            'objetivos_inmediatos' => ['required', 'max:250', 'min:1'],
+            'objetivos_mediatos' => ['required', 'max:250', 'min:1'],
+            'metodologia' => ['max:50'],
+            'recursos' => ['max:250'],
+            'actividades_funcionales' => ['max:250'],
+            'responsabilidades' => ['max:200'],
+            'duracion' => ['max:200'],
+            'horario' => ['max:200']
+        ];
+    }
+
     public static function getValidacionesProyectoServicio() {
         return [
             'estado' => ['required', 'max:11', 'min:1'],
