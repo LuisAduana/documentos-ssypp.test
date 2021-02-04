@@ -51,7 +51,7 @@ Route::prefix('coordinador')->group(function() {
     Route::put('modificar-responsable', [ResponsableController::class, 'modificarResponsable']);
     Route::put('activar-desactivar-responsable', [ResponsableController::class, 'activarDesactivarResponsable']);
 
-    Route::get('obtener-proyectos-servicio', [ProyectoServicioController::class, 'obtenerProyectosServicio']);
+    Route::post('obtener-proyectos-servicio', [ProyectoServicioController::class, 'obtenerProyectosServicio']);
     Route::post('registrar-proyecto-servicio', [ProyectoServicioController::class, 'registrarProyectoServicio']);
     Route::put('modificar-proyecto-servicio', [ProyectoServicioController::class, 'modificarProyectoServicio']);
     Route::put('modificar-estado-proyecto', [ProyectoServicioController::class, 'cambiarEstadoProyecto']);
@@ -62,7 +62,8 @@ Route::prefix('coordinador')->group(function() {
     Route::put('modificar-estado-proyecto-practica', [ProyectoPracticaController::class, 'cambiarEstadoProyecto']);
 
     Route::get('obtener-inscripciones', [InscripcionController::class, 'obtenerInscripciones']);
-    Route::post('registrar-inscripcion', [InscripcionController::class, 'registrarInscripcion']);
+    Route::post('registrar-inscripcion-servicio', [InscripcionController::class, 'registrarInscripcionServicio']);
+    Route::put('cancelar-inscripciones-servicio', [InscripcionController::class, 'cancelarInscripciones']);
 
     Route::get('obtener-nombres-dependencias', [UtilidadesController::class, 'obtenerNombresDependencias']);
     Route::post('obtener-responsables-por-dependencia', [UtilidadesController::class, 'obtenerNombresResponsablesPorDependencia']);

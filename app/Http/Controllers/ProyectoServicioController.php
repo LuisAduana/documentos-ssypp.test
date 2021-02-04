@@ -57,8 +57,6 @@ class ProyectoServicioController extends Controller
                 'actividades' => $proyecto->actividades,
                 'horario' => $proyecto->horario,
                 'requisitos' => $proyecto->requisitos,
-                'proyecto_id' => $proyecto->proyecto_id,
-                'estado' => $proyecto->estado,
                 'id_proyecto' => $proyecto->proyecto->id,
                 'estado' => $proyecto->proyecto->estado,
                 'inscripcion_id' => $proyecto->proyecto->inscripcion_id,
@@ -70,8 +68,21 @@ class ProyectoServicioController extends Controller
             );
             array_push($proyectos, $localArray);
         }
-        
+
+        if ($request->tipo_consulta == "NO ASIGNADO") {
+            $proyectosNoAsignados = array();
+            foreach ($proyectos as $proyecto) {
+                if ($proyecto["estado"] == "NO ASIGNADO") {
+                    array_push($proyectosNoAsignados, $proyecto);
+                }
+            }
+            return response()->json($proyectosNoAsignados, 200);
+        }
         return response()->json($proyectos, 200);
+    }
+
+    public function obtenerProyectoServicioNoAsignados(Request $request) {
+
     }
 
     public function cambiarEstadoProyecto(Request $request) {

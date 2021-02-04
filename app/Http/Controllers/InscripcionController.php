@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class InscripcionController extends Controller
 {
-    public function registrarInscripcion(Request $request) {
+    public function registrarInscripcionServicio(Request $request) {
         $request->validate(ReglasValidaciones::getValidacionesInscripcion());
 
         $cuenta = Inscripcion::where('estado_inscripcion', 'ACTIVO')->count();
@@ -27,8 +27,25 @@ class InscripcionController extends Controller
                 'fin_inscripcion' => $request->fin_inscripcion,
                 'estado_inscripcion' => $request->estado_inscripcion
             ]);
+            $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', 'DEFAULT')->first();
+            foreach($request->proyectos as $proyecto) {
+                DB::update("update proyecto set estado = 'INSCRIPCION', inscripcion_id = ? where id = ?", [$id, $proyecto["id_proyecto"]]);
+            }
             $idString = strval($id);
-            DB::unprepared("create event cambiar_estado_inscripcion on schedule at '".$request->fin_inscripcion."' do update inscripcion set estado_inscripcion = 'INACTIVO' where id = ".$idString);
+            $idInscripcion = strval($inscripcion->id);
+            DB::unprepared("create event cambiar_estado_inscripcion on schedule at '".$request->fin_inscripcion."' do begin update inscripcion set estado_inscripcion = 'INACTIVO' where id = ".$idString."; update proyecto set estado = 'NO ASIGNADO', inscripcion_id = ".$idInscripcion." where estado = 'INSCRIPCION' and inscripcion_id = ".$idString."; END");
+        });
+    }
+
+    public function cancelarInscripciones(Request $request) {
+        DB::transaction(function () use ($request) {
+            $proyectos = DB::table("proyecto")->where("inscripcion_id", $request->id)->get();
+            $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', 'DEFAULT')->first();
+            foreach($proyectos as $proyecto) {
+                DB::update("update proyecto set estado = 'NO ASIGNADO', inscripcion_id = ? where estado = 'INSCRIPCION' and id = ?", [$inscripcion->id, $proyecto->id]);
+            }
+            DB::update("update inscripcion set estado_inscripcion = 'INACTIVO' where id = ?", [$request->id]);
+            DB::unprepared("drop event cambiar_estado_inscripcion");
         });
     }
 
