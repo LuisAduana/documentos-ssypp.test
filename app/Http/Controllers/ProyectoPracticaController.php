@@ -90,6 +90,17 @@ class ProyectoPracticaController extends Controller
             );
             array_push($proyectos, $localArray);
         }
+
+        if ($request->tipo_consulta == "NO ASIGNADO") {
+            $proyectosNoAsignados = array();
+            foreach ($proyectos as $proyecto) {
+                if ($proyecto["estado"] == "NO ASIGNADO") {
+                    array_push($proyectosNoAsignados, $proyecto);
+                }
+            }
+            return response()->json($proyectosNoAsignados, 200);
+        }
+
         return response()->json($proyectos, 200);
     }
 

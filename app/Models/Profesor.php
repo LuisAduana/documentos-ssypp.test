@@ -22,6 +22,11 @@ class Profesor extends Model
         'users_id'
     ];
 
+    public function alumno()
+    {
+        return $this->hasOne(Alumno::class, 'profesor_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

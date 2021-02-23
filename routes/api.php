@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdministradorController;
+use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\CoordinadorController;
 use App\Http\Controllers\DependenciaController;
 use App\http\Controllers\InscripcionController;
@@ -56,18 +57,34 @@ Route::prefix('coordinador')->group(function() {
     Route::put('modificar-proyecto-servicio', [ProyectoServicioController::class, 'modificarProyectoServicio']);
     Route::put('modificar-estado-proyecto', [ProyectoServicioController::class, 'cambiarEstadoProyecto']);
 
-    Route::get('obtener-proyectos-practica', [ProyectoPracticaController::class, 'obtenerProyectosPractica']);
+    Route::post('obtener-proyectos-practica', [ProyectoPracticaController::class, 'obtenerProyectosPractica']);
     Route::post('registrar-proyecto-practica', [ProyectoPracticaController::class, 'registrarProyectoPractica']);
     Route::put('modificar-proyecto-practica', [ProyectoPracticaController::class, 'modificarProyectoPractica']);
     Route::put('modificar-estado-proyecto-practica', [ProyectoPracticaController::class, 'cambiarEstadoProyecto']);
 
+    Route::get('obtener-alumnos-inscritos', [AlumnoController::class, 'consultarAlumnosInscritos']);
+    Route::post('asignar-alumno-proyecto', [AlumnoController::class, 'asignarProyecto']);
+
     Route::get('obtener-inscripciones', [InscripcionController::class, 'obtenerInscripciones']);
-    Route::post('registrar-inscripcion-servicio', [InscripcionController::class, 'registrarInscripcionServicio']);
-    Route::put('cancelar-inscripciones-servicio', [InscripcionController::class, 'cancelarInscripciones']);
+    Route::post('registrar-inscripcion', [InscripcionController::class, 'registrarInscripcion']);
+    Route::put('terminar-inscripcion', [InscripcionController::class, 'terminarInscripcion']);
+    Route::put('cancelar-inscripcion', [InscripcionController::class, 'cancelarInscripcion']);
 
     Route::get('obtener-nombres-dependencias', [UtilidadesController::class, 'obtenerNombresDependencias']);
     Route::post('obtener-responsables-por-dependencia', [UtilidadesController::class, 'obtenerNombresResponsablesPorDependencia']);
+    Route::post('obtener-proyectos-seleccionador', [UtilidadesController::class, 'obtenerProyectosSeleccionadosAlumno']);
+});
+
+Route::prefix('alumno')->group(function() {
+    Route::post('registrar-alumno', [AlumnoController::class, 'crearRegistro']);
+    Route::post('comprobar-registro', [AlumnoController::class, 'comprobarExistencia']);
+    Route::post('validar-registro', [AlumnoController::class, 'validarRegistro']);
+});
+
+Route::prefix('utilidades')->group(function() {
+    Route::get('obtener-proyectos-inscripcion', [UtilidadesController::class, 'obtenerProyectosInscripcion']);
 });
 
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout']);
+Route::post("obtener-informacion-alumno", [LoginController::class, "obtenerInformacionAlumno"]);

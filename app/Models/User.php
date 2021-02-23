@@ -32,11 +32,16 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password',
+        'password'
     ];
 
     public function profesor()
     {
         return $this->hasOne(Profesor::class, 'users_id');
+    }
+
+    public function alumno()
+    {
+        return $this->hasOne(Alumno::class, 'users_id');
     }
 }

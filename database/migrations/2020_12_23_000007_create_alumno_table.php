@@ -18,6 +18,7 @@ class CreateAlumnoTable extends Migration
             $table->string('matricula', 9)->unique();
             $table->string('bloque', 1);
             $table->string('seccion', 1);
+            $table->string('proyectos', 50);
             $table->foreignId('users_id')->constrained('users');
             $table->foreignId('profesor_id')->constrained('profesor');
         });

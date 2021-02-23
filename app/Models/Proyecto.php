@@ -29,6 +29,11 @@ class Proyecto extends Model
         return $this->hasOne(ProyectoServicio::class, 'proyecto_id');
     }
 
+    public function proyectoPractica()
+    {
+        return $this->hasOne(ProyectoPractica::class, 'proyecto_id');
+    }
+
     public function inscripcion()
     {
         return $this->belongsTo(Inscripcion::class);

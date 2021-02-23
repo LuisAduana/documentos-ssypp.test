@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
+use App\Models\Proyecto;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -10,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class InscripcionController extends Controller
 {
-    public function registrarInscripcionServicio(Request $request) {
+    public function registrarInscripcion(Request $request) {
         $request->validate(ReglasValidaciones::getValidacionesInscripcion());
 
         $cuenta = Inscripcion::where('estado_inscripcion', 'ACTIVO')->count();
@@ -25,7 +27,8 @@ class InscripcionController extends Controller
                 'token_inscripcion' => $this->generarRandomString(),
                 'inscripcion_inicio' => $request->inscripcion_inicio,
                 'fin_inscripcion' => $request->fin_inscripcion,
-                'estado_inscripcion' => $request->estado_inscripcion
+                'tipo_inscripcion' => $request->tipo_inscripcion,
+                'estado_inscripcion' => "ACTIVO"
             ]);
             $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', 'DEFAULT')->first();
             foreach($request->proyectos as $proyecto) {
@@ -37,15 +40,39 @@ class InscripcionController extends Controller
         });
     }
 
-    public function cancelarInscripciones(Request $request) {
+    public function terminarInscripcion(Request $request) {
         DB::transaction(function () use ($request) {
-            $proyectos = DB::table("proyecto")->where("inscripcion_id", $request->id)->get();
-            $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', 'DEFAULT')->first();
+            $proyectos = Proyecto::where("inscripcion_id", $request->id)->get();
+            $inscripcion = Inscripcion::where("estado_inscripcion", "DEFAULT")->first();
             foreach($proyectos as $proyecto) {
-                DB::update("update proyecto set estado = 'NO ASIGNADO', inscripcion_id = ? where estado = 'INSCRIPCION' and id = ?", [$inscripcion->id, $proyecto->id]);
+                Proyecto::where("estado", "INSCRIPCION")->where("id", $proyecto->id)->update([
+                    "estado" => "NO ASIGNADO",
+                    "inscripcion_id" => $inscripcion->id
+                ]);
             }
-            DB::update("update inscripcion set estado_inscripcion = 'INACTIVO' where id = ?", [$request->id]);
-            DB::unprepared("drop event cambiar_estado_inscripcion");
+            Inscripcion::where("id", $request->id)->update(["estado_inscripcion" => "INACTIVO"]);
+            DB::unprepared("DROP EVENT cambiar_estado_inscripcion");
+        });
+    }
+
+    public function cancelarInscripcion(Request $request) {
+        DB::transaction(function () use ($request) {
+            $proyectos = Proyecto::where("inscripcion_id", $request->id)->get();
+            $users = User::where("estado", "INSCRIPCION")->get();
+            $inscripcion = Inscripcion::where("estado_inscripcion", "DEFAULT")->first();
+            foreach($proyectos as $proyecto) {
+                Proyecto::where("id", $proyecto->id)->update([
+                    "estado" => "NO ASIGNADO",
+                    "inscripcion_id" => $inscripcion->id
+                ]);
+            }
+            foreach($users as $user) {
+                User::where("id", $user->id)->update([
+                    "estado" => "ACTIVO"
+                ]);
+            }
+            Inscripcion::where("id", $request->id)->update(["estado_inscripcion" => "INACTIVO"]);
+            DB::unprepared("DROP EVENT cambiar_estado_inscripcion");
         });
     }
 

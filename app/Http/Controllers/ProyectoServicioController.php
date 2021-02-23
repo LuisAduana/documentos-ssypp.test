@@ -81,10 +81,6 @@ class ProyectoServicioController extends Controller
         return response()->json($proyectos, 200);
     }
 
-    public function obtenerProyectoServicioNoAsignados(Request $request) {
-
-    }
-
     public function cambiarEstadoProyecto(Request $request) {
         $request->validate(ReglasValidaciones::getValidacionesCambioEstado());
 

@@ -7,11 +7,58 @@ use Illuminate\Validation\Rule;
 
 class ReglasValidaciones {
 
+    public static function getValidacionesAsignarProyecto() {
+        return [
+            'id' => ['required'],
+            'alumno_id' => ['required'],
+            'proyecto_id' => ['required']
+        ];
+    }
+
+    public static function getValidacionesValidarActualizacion(Request $request) {
+        return [
+            'correo' => ['required', 'max:150', 'email', Rule::unique('users')->ignore($request->id)],
+            'matricula' => ['required', 'min:9' , 'max:9', Rule::unique('alumno')->ignore($request->id_alumno)]
+        ];
+    }
+    
+    public static function getValidacionesValidarRegistro() {
+        return [
+            'correo' => ['required', 'max:150', 'email', 'unique:users'],
+            'matricula' => ['required', 'min:9' , 'max:9', 'unique:alumno']
+        ];
+    }
+
+    public static function getValidacionesComprobarExistencia() {
+        return [
+            'correo' => ['required', 'max:150', 'email'],
+            'password' => ['required', 'min:7', 'max:120']
+        ];
+    }
+
+    public static function getValidacionesRegistroAlumno() {
+        return [
+            'correo' => ['required', 'max:150', 'email', 'unique:users'],
+            'password' => ['required', 'min:7', 'max:120'],
+            'nombres' => ['required', 'min:1', 'max:90'],
+            'apellido_paterno' => ['required', 'min:1', 'max:45'],
+            'apellido_materno' => ['required', 'min:1', 'max:45'],
+            'estado' => ['required', 'min:1', 'max:11'],
+            'num_contacto' => ['required', 'min:10', 'max:20'],
+            'rol_usuario' => ['required', 'min:1', 'max:13'],
+            'matricula' => ['required', 'min:9' , 'max:9', 'unique:alumno'],
+            'bloque' => ['required', 'min:1', 'max:2'],
+            'seccion' => ['required', 'min:1', 'max:1'],
+            'proyectos' => ['required', 'min:1', 'max:50'],
+            'token_inscripcion' => ['required', 'min:5', 'max:5']
+        ];
+    }
+
     public static function getValidacionesInscripcion() {
         return [
             'inscripcion_inicio' => ['required', 'date_format:Y-m-d H:i:s'],
             'fin_inscripcion' => ['required', 'date_format:Y-m-d H:i:s'],
-            'estado_inscripcion' => ['required', 'max:10', 'min:1']
+            'tipo_inscripcion' => ['required', 'min:1', 'max:10']
         ];
     }
 
@@ -83,10 +130,16 @@ class ReglasValidaciones {
         ];
     }
 
+    public static function getValidacionesProyectosInscripcion() {
+        return ['tipo_inscripcion' => ['required', 'min:1' ,'max:10']];
+    }
+
     public static function getMensajesPersonalizados() {
         return [
             'nombre_dependencia.unique' => 'El nombre de la dependencia ya ha sido registrado.',
-            'nombre_responsable.unique' => 'El nombre del responsable ya ha sido registrado.'
+            'nombre_responsable.unique' => 'El nombre del responsable ya ha sido registrado.',
+            'correo.unique' => 'El correo electrónico ya ha sido registrado.',
+            'matricula.unique' => 'La matrícula ya ha sido registrada.'
         ];
     }
 

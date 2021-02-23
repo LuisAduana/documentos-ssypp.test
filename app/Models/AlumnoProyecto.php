@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Inscripcion extends Model
+class AlumnoProyecto extends Model
 {
     public $timestamps = false;
-    public $table = "inscripcion";
+    public $table = "alumno_proyecto";
     use HasFactory;
 
     /**
@@ -18,15 +18,18 @@ class Inscripcion extends Model
      */
     protected $fillable = [
         'id',
-        'token_inscripcion',
-        'inscripcion_inicio',
-        'fin_inscripcion',
-        'tipo_inscripcion',
-        'estado_inscripcion'
+        'tipo_proyecto',
+        'alumno_id',
+        'proyecto_id'
     ];
 
     public function proyecto()
     {
-        return $this->hasOne(Proyecto::class, 'proyecto_id');
+        return $this->belongsTo(Proyecto::class);
+    }
+
+    public function alumno() 
+    {
+        return $this->belongsTo(Alumno::class);
     }
 }
