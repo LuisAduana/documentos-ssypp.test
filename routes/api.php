@@ -9,6 +9,7 @@ use App\Http\Controllers\DependenciaController;
 use App\http\Controllers\InscripcionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ResponsableController;
+use App\Http\Controllers\ProfesorController;
 use App\Http\Controllers\ProyectoPracticaController;
 use App\Http\Controllers\ProyectoServicioController;
 use App\Http\Controllers\UtilidadesController;
@@ -73,6 +74,12 @@ Route::prefix('coordinador')->group(function() {
     Route::get('obtener-nombres-dependencias', [UtilidadesController::class, 'obtenerNombresDependencias']);
     Route::post('obtener-responsables-por-dependencia', [UtilidadesController::class, 'obtenerNombresResponsablesPorDependencia']);
     Route::post('obtener-proyectos-seleccionador', [UtilidadesController::class, 'obtenerProyectosSeleccionadosAlumno']);
+
+    Route::get("obtener-profesores", [ProfesorController::class, "consultarProfesores"]);
+    Route::post("validar-registro", [ProfesorController::class, "validarRegistroProfesor"]);
+    Route::post("registrar-profesor", [ProfesorController::class, "registrarProfesor"]);
+    Route::put("modificar-profesor", [ProfesorController::class, "modificarProfesor"]);
+    Route::put("activar-desactivar-profesor", [ProfesorController::class, "cambiarEstadoProfesor"]);
 });
 
 Route::prefix('alumno')->group(function() {
@@ -83,6 +90,7 @@ Route::prefix('alumno')->group(function() {
 
 Route::prefix('utilidades')->group(function() {
     Route::get('obtener-proyectos-inscripcion', [UtilidadesController::class, 'obtenerProyectosInscripcion']);
+    Route::get('obtener-alumnos-asignados', [UtilidadesController::class, 'obtenerAlumnosAsignados']);
 });
 
 Route::post('login', [LoginController::class, 'login']);

@@ -6,12 +6,38 @@ use App\Models\Dependencia;
 use App\Models\Inscripcion;
 use App\Models\Responsable;
 use App\Models\Proyecto;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class UtilidadesController extends Controller
 {
+    public function obtenerAlumnosAsignados(Request $request) {
+        $users = User::where("estado", "INSCRITO")->get();
+        $alumnos = array();
+        foreach($users as $user) {
+            $localArray = array(
+                "id" => $user->id,
+                "correo" => $user->correo,
+                "nombres" => $user->nombres,
+                "apellido_paterno" => $user->apellido_paterno,
+                "apellido_materno" => $user->apellido_materno,
+                "estao" => $user->estado,
+                "num_contacto" => $user->num_contacto,
+                "rol_usuario" => $user->rol_usuario,
+                "alumno_id" => $user->alumno->id,
+                "matricula" => $user->alumno->matricula,
+                "bloque" => $user->alumno->bloque,
+                "seccion" => $user->alumno->seccion,
+                "proyectos" => $user->alumno->proyectos
+            );
+            array_push($alumnos, $localArray);
+        }
+
+        return response()->json($alumnos, 200);
+    }
+
     public function obtenerProyectosSeleccionadosAlumno(Request $request) {
 
         $inscripcion = DB::table("inscripcion")->orderByRaw("id DESC")->limit(1)->first();

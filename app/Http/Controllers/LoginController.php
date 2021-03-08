@@ -17,16 +17,16 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'correo' => ['required'],
-            'password' => ['required']
+            "correo" => ["required"],
+            "password" => ["required"]
         ]);
 
-        if (Auth::attempt($request->only('correo', 'password'))) {
+        if (Auth::attempt($request->only("correo", "password"))) {
             return response()->json(Auth::user(), 200);
         }
 
         throw ValidationException::withMessages([
-            'correo' => ['Las credenciales son inválidas']
+            "correo" => ["Las credenciales son inválidas"]
         ]);
     }
 

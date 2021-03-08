@@ -12,47 +12,58 @@ use Illuminate\Validation\ValidationException;
 class ResponsableController extends Controller
 {
     public function registrarResponsable(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesResponsable($request, true));
+        $request->validate(
+            ReglasValidaciones::getValidacionesResponsable($request, true)
+        );
 
         DB::transaction(function () use ($request) {
-            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
-            DB::insert(
-                'insert into responsable (nombre_responsable, cargo, correo, 
-                num_contacto, estado, dependencia_id) values (?, ?, ?, ?, ?, ?)', [
-                $request->nombre_responsable, $request->cargo, $request->correo,
-                $request->num_contacto, $request->estado, $dependencia->id]
-            );
+            $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
+            Responsable::create([
+                "nombre_responsable" => $request->nombre_responsable,
+                "cargo" => $request->cargo,
+                "correo" => $request->correo,
+                "num_contacto" => $request->num_contacto,
+                "estado" => $request->estado,
+                "dependencia_id" => $dependencia->id
+            ]);
         });
     }
 
     public function modificarResponsable(Request $request) {
-        $rules = ReglasValidaciones::getValidacionesResponsable($request, false);
-        $customMessages = ReglasValidaciones::getMensajesPersonalizados();
-
-        $this->validate($request, $rules, $customMessages);
+        $this->validate(
+            $request,
+            ReglasValidaciones::getValidacionesResponsable($request, false),
+            ReglasValidaciones::getMensajesPersonalizados()
+        );
 
         DB::transaction(function () use ($request) {
-            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
-            DB::update('update responsable set nombre_responsable = ?, cargo = ?, correo = ?, num_contacto = ?, estado = ?, dependencia_id = ? where id = ?', [
-                $request->nombre_responsable, $request->cargo, $request->correo, $request->num_contacto, $request->estado, $dependencia->id, $request->id
+            $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
+
+            Responsable::where("id", $request->id)->update([
+                "nombre_responsable" => $request->nombre_responsable,
+                "cargo" => $request->cargo,
+                "correo" => $request->correo,
+                "num_contacto" => $request->num_contacto,
+                "estado" => $request->estado,
+                "dependencia_id"  => $dependencia->id
             ]);
         });
     }
 
     public function obtenerResponsables(Request $request) {
-        $query = Responsable::all();
+        $query = Responsable::get();
 
         $responsables = array();
         foreach ($query as $responsable) {
             $localArray = array(
-                'id' => $responsable->id,
-                'nombre_responsable' => $responsable->nombre_responsable,
-                'cargo' => $responsable->cargo,
-                'correo' => $responsable->correo,
-                'num_contacto' => $responsable->num_contacto,
-                'estado' => $responsable->estado,
-                'dependencia_id' => $responsable->dependencia_id,
-                'nombre_dependencia' => $responsable->dependencia->nombre_dependencia
+                "id" => $responsable->id,
+                "nombre_responsable" => $responsable->nombre_responsable,
+                "cargo" => $responsable->cargo,
+                "correo" => $responsable->correo,
+                "num_contacto" => $responsable->num_contacto,
+                "estado" => $responsable->estado,
+                "dependencia_id" => $responsable->dependencia_id,
+                "nombre_dependencia" => $responsable->dependencia->nombre_dependencia
             );
             array_push($responsables, $localArray);
         }
@@ -63,14 +74,13 @@ class ResponsableController extends Controller
     public function activarDesactivarResponsable(Request $request) {
         $request->validate(ReglasValidaciones::getValidacionesCambioEstado());
         DB::transaction(function () use ($request) {
-            $responsable = DB::table('responsable')->find($request->id);
-            $dependencia = DB::table('dependencia')->find($responsable->dependencia_id);
+            $dependencia = Dependencia::where("id", $request->id)->first();
             if ($dependencia->estado == "INACTIVO") {
                 throw ValidationException::withMessages([
-                    'estado' => ['La dependencia a la que pertenece el responsable está desactivada. Por favor actívela.']
+                    "estado" => ["La dependencia a la que pertenece el responsable está desactivada. Por favor actívela."]
                 ]);
             } else {
-                DB::update('update responsable set estado = ? where id = ?', [$request->estado, $request->id]);
+                Responsable::where("id", $request->id)->update(["estado" => $request->estado]);
             }
         });
     }

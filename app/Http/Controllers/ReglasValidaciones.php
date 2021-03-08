@@ -7,6 +7,26 @@ use Illuminate\Validation\Rule;
 
 class ReglasValidaciones {
 
+    public static function getValidacionesProfesor(Request $request, bool $tipo) {
+        $validacionCorreo = self::tipoValidacion($request, $tipo, "users");
+        if ($tipo) {
+            $validacionNumPersonal = 'unique:profesor';
+        } else {
+            $validacionNumPersonal = Rule::unique("profesor")->ignore($request->profesor_id);
+        }
+        return [
+            'correo' => ['required', 'max:150', 'email', $validacionCorreo],
+            'password' => ['required', 'min:7', 'max:120'],
+            'nombres' => ['required', 'min:1', 'max:90'],
+            'apellido_paterno' => ['required', 'min:1', 'max:45'],
+            'apellido_materno' => ['required', 'min:1', 'max:45'],
+            'estado' => ['required', 'min:1', 'max:11'],
+            'num_contacto' => ['required', 'min:10', 'max:20'],
+            'rol_usuario' => ['required', 'min:1', 'max:13'],
+            'num_personal' => ['required', 'min:10', 'max:10', $validacionNumPersonal]
+        ];
+    }
+
     public static function getValidacionesAsignarProyecto() {
         return [
             'id' => ['required'],
@@ -139,7 +159,8 @@ class ReglasValidaciones {
             'nombre_dependencia.unique' => 'El nombre de la dependencia ya ha sido registrado.',
             'nombre_responsable.unique' => 'El nombre del responsable ya ha sido registrado.',
             'correo.unique' => 'El correo electrónico ya ha sido registrado.',
-            'matricula.unique' => 'La matrícula ya ha sido registrada.'
+            'matricula.unique' => 'La matrícula ya ha sido registrada.',
+            'num_personal.unique' => 'El número de personal ya ha sido registrado.'
         ];
     }
 

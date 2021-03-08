@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dependencia;
+use App\Models\Inscripcion;
 use App\Models\Proyecto;
 use App\Models\ProyectoServicio;
+use App\Models\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProyectoServicioController extends Controller
 {
@@ -15,19 +19,22 @@ class ProyectoServicioController extends Controller
         $request->validate(ReglasValidaciones::getValidacionesProyectoServicio());
 
         DB::transaction(function () use ($request) {
-            $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', "DEFAULT")->first();
-            $responsable = DB::table('responsable')->where('nombre_responsable', $request->nombre_responsable)->first();
-            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
+            $inscripcion = Inscripcion::where("estado_inscripcion", "DEFAULT")->first();
+            $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();
+            $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
             $proyecto_id = DB::table('proyecto')->insertGetId([
                 'estado' => $request->estado,
                 'inscripcion_id' => $inscripcion->id,
                 'responsable_id' => $responsable->id,
                 'dependencia_id' => $dependencia->id
             ]);
-            DB::insert(
-                'insert into proyecto_servicio (num_alumnos, actividades, horario, requisitos, proyecto_id) values (?, ?, ?, ?, ?)',
-                [ $request->num_alumnos, $request->actividades, $request->horario, $request->requisitos, $proyecto_id ]
-            );
+            ProyectoServicio::create([
+                "num_alumnos" => $request->num_alumnos,
+                "actividades" => $request->actividades,
+                "horario" => $request->horario,
+                "requisitos" => $request->requisitos,
+                "proyecto_id" => $proyecto_id
+            ]);
         });
     }
 
@@ -84,6 +91,17 @@ class ProyectoServicioController extends Controller
     public function cambiarEstadoProyecto(Request $request) {
         $request->validate(ReglasValidaciones::getValidacionesCambioEstado());
 
-        DB::update('update proyecto set estado = ? where id = ?', [$request->estado, $request->id]);
+        DB::transaction(function () use ($request) {
+            $proyecto = Proyecto::where("id", $request->id)->first();
+            $dependencia = Dependencia::where("id", $proyecto->dependencia_id)->first();
+            $responsable = Responsable::where("id", $proyecto->responsable_id)->first();
+            if ($dependencia->estado == "INACTIVO" || $responsable->estado == "INACTIVO") {
+                throw ValidationException::withMessages([
+                    "estado" => ["La dependencia o responsable del proyecto están inactivos. Por favor actívelos."]
+                ]);
+            } else {
+                Proyecto::where("id", $request->id)->update(["estado" => $request->estado]);
+            }
+        });
     }
 }
