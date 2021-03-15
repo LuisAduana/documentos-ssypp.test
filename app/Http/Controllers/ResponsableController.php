@@ -74,8 +74,8 @@ class ResponsableController extends Controller
     public function activarDesactivarResponsable(Request $request) {
         $request->validate(ReglasValidaciones::getValidacionesCambioEstado());
         DB::transaction(function () use ($request) {
-            $dependencia = Dependencia::where("id", $request->id)->first();
-            if ($dependencia->estado == "INACTIVO") {
+            $responsable = Responsable::where("id", $request->id)->first();
+            if ($responsable->dependencia->estado == "INACTIVO") {
                 throw ValidationException::withMessages([
                     "estado" => ["La dependencia a la que pertenece el responsable está desactivada. Por favor actívela."]
                 ]);

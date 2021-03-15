@@ -15,61 +15,70 @@ use Illuminate\Validation\ValidationException;
 class AlumnoController extends Controller
 {
     public function asignarProyecto(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesAsignarProyecto());
-        DB::transaction(function () use ($request) {
-            AlumnoProyecto::create([
-                "tipo_proyecto" => $request->tipo_proyecto,
-                "alumno_id" => $request->alumno_id,
-                "proyecto_id" => $request->proyecto_id
-            ]);
-            Proyecto::where("id", $request->proyecto_id)->update(["estado" => "ASIGNADO"]);
-            User::where("id", $request->id)->update(["estado" => "INSCRITO"]);
-    });
+      $request->validate(ReglasValidaciones::getValidacionesAsignarProyecto());
+      DB::transaction(function () use ($request) {
+        AlumnoProyecto::create([
+            "tipo_proyecto" => $request->tipo_proyecto,
+            "alumno_id" => $request->alumno_id,
+            "proyecto_id" => $request->proyecto_id
+        ]);
+        User::where("id", $request->id)->update(["estado" => "ASIGNADO"]);
+      });
     }
 
     public function crearRegistro(Request $request) 
     {
+      
+      $request->validate(["esRegistro" => ["required"]]);
+      if ($request->esRegistro) {
         $this->validate(
             $request,
-            ReglasValidaciones::getValidacionesRegistroAlumno(),
+            ReglasValidaciones::getValidacionesValidarRegistro(),
             ReglasValidaciones::getMensajesPersonalizados()
         );
+      } else {
+        $this->validate(
+            $request,
+            ReglasValidaciones::getValidacionesValidarActualizacion($request),
+            ReglasValidaciones::getMensajesPersonalizados()
+        );
+      }
 
-        $inscripcion = Inscripcion::where("token_inscripcion", $request->token_inscripcion)->first();
+      $inscripcion = Inscripcion::where("token_inscripcion", $request->token_inscripcion)->first();
 
-        if ($inscripcion == null || $inscripcion->token_inscripcion != $request->token_inscripcion) {
-            return response()->json("El token de inscripción no es válido.", 401);
-        } else if ($inscripcion->estado_inscripcion == "INACTIVO") {
-            return response()->json("El tiempo de inscripción ha finalizado.", 401);
-        }
+      if ($inscripcion == null || $inscripcion->token_inscripcion != $request->token_inscripcion) {
+          return response()->json("El token de inscripción no es válido.", 401);
+      } else if ($inscripcion->estado == "INACTIVO") {
+          return response()->json("El tiempo de inscripción ha finalizado.", 401);
+      }
 
-        DB::transaction(function () use ($request) {
-            $id = DB::table('users')->insertGetId([
-                'correo' => $request->correo,
-                'password' => Hash::make($request->password),
-                'nombres' => $request->nombres,
-                'apellido_paterno' => $request->apellido_paterno,
-                'apellido_materno' => $request->apellido_materno,
-                'estado' => "INSCRIPCION",
-                'num_contacto' => $request->num_contacto,
-                'rol_usuario' => $request->rol_usuario
-            ]);
+      DB::transaction(function () use ($request) {
+          $usuario = User::updateOrCreate(["id" => $request->id], [
+            "correo" => $request->correo,
+            "password" => Hash::make($request->password),
+            "nombres" => $request->nombres,
+            "apellido_paterno" => $request->apellido_paterno,
+            "apellido_materno" => $request->apellido_materno,
+            "estado" => "INSCRIPCION",
+            "num_contacto" => $request->num_contacto,
+            "rol_usuario" => $request->rol_usuario
+          ]);
 
-            $usuario = User::where("estado", "DEFAULT")->first();
-            
-            Alumno::create([
-                "matricula" => $request->matricula,
-                "bloque" => $request->bloque,
-                "seccion" => $request->seccion,
-                "proyectos" => $request->proyectos,
-                "users_id" => $id,
-                "profesor_id" => $usuario->profesor->id
-            ]);
-        });
+          $profesor = User::where("estado", "DEFAULT")->first();
+          
+          Alumno::updateOrCreate(["id" => $request->alumno_id], [
+              "matricula" => $request->matricula,
+              "bloque" => $request->bloque,
+              "seccion" => $request->seccion,
+              "proyectos" => $request->proyectos,
+              "users_id" => $usuario->id,
+              "profesor_id" => $profesor->profesor->id
+          ]);
+      });
     }
 
     public function validarRegistro(Request $request) {
-        if ($request->es_registro) {
+        if ($request->esRegistro) {
             $this->validate(
                 $request,
                 ReglasValidaciones::getValidacionesValidarRegistro(),
@@ -129,7 +138,7 @@ class AlumnoController extends Controller
             'estado' => $usuario->estado,
             'num_contacto' => $usuario->num_contacto,
             'rol_usuario' => $usuario->rol_usuario,
-            'id_alumno' => $usuario->alumno->id,
+            'alumno_id' => $usuario->alumno->id,
             'matricula' => $usuario->alumno->matricula,
             'bloque' => $usuario->alumno->bloque,
             'seccion' => $usuario->alumno->seccion,

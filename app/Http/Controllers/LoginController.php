@@ -6,7 +6,9 @@ use App\Models\AlumnoProyecto;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+
 
 class LoginController extends Controller
 {
@@ -21,13 +23,20 @@ class LoginController extends Controller
             "password" => ["required"]
         ]);
 
-        if (Auth::attempt($request->only("correo", "password"))) {
-            return response()->json(Auth::user(), 200);
+        $usuario = User::where("correo", $request->correo)->firstOrFail();
+        if(!Hash::check($request->password, $usuario->password)) {
+          throw ValidationException::withMessages([
+            "correo" => ["Las credenciales son inválidas"]
+          ]);
         }
 
-        throw ValidationException::withMessages([
-            "correo" => ["Las credenciales son inválidas"]
-        ]);
+        if ($usuario->estado == "ACTIVO") {
+          if (Auth::attempt($request->only("correo", "password"))) {
+            return response()->json(Auth::user(), 200);
+          }
+        }
+
+        return response()->json((object) array("estado" => $usuario->estado), 200);
     }
 
     public function obtenerInformacionAlumno(Request $request) {

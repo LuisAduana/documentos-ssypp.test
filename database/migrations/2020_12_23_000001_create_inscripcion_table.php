@@ -19,7 +19,7 @@ class CreateInscripcionTable extends Migration
             $table->dateTime('inscripcion_inicio');
             $table->dateTime('fin_inscripcion');
             $table->string('tipo_inscripcion', 10);
-            $table->string('estado_inscripcion', 10);
+            $table->string('estado', 10);
         });
     }
 

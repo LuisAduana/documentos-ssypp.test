@@ -7,9 +7,9 @@ use Illuminate\Validation\Rule;
 
 class ReglasValidaciones {
 
-    public static function getValidacionesProfesor(Request $request, bool $tipo) {
-        $validacionCorreo = self::tipoValidacion($request, $tipo, "users");
-        if ($tipo) {
+    public static function getValidacionesProfesor(Request $request) {
+        $validacionCorreo = self::tipoValidacion($request, $request->registro_profesor, "users");
+        if ($request->registro_profesor) {
             $validacionNumPersonal = 'unique:profesor';
         } else {
             $validacionNumPersonal = Rule::unique("profesor")->ignore($request->profesor_id);
@@ -27,9 +27,23 @@ class ReglasValidaciones {
         ];
     }
 
+    public static function getValidacionesModificarProfesor(Request $request) {
+      return [
+        'correo' => ['required', 'max:150', 'email', Rule::unique("users")->ignore($request->id)],
+        'nombres' => ['required', 'min:1', 'max:90'],
+        'apellido_paterno' => ['required', 'min:1', 'max:45'],
+        'apellido_materno' => ['required', 'min:1', 'max:45'],
+        'estado' => ['required', 'min:1', 'max:11'],
+        'num_contacto' => ['required', 'min:10', 'max:20'],
+        'rol_usuario' => ['required', 'min:1', 'max:13'],
+        'num_personal' => ['required', 'min:10', 'max:10', Rule::unique("profesor")->ignore($request->profesor_id)]
+    ];
+    }
+
     public static function getValidacionesAsignarProyecto() {
         return [
             'id' => ['required'],
+            'tipo_proyecto' => ['required', 'max:10'],
             'alumno_id' => ['required'],
             'proyecto_id' => ['required']
         ];
@@ -38,7 +52,7 @@ class ReglasValidaciones {
     public static function getValidacionesValidarActualizacion(Request $request) {
         return [
             'correo' => ['required', 'max:150', 'email', Rule::unique('users')->ignore($request->id)],
-            'matricula' => ['required', 'min:9' , 'max:9', Rule::unique('alumno')->ignore($request->id_alumno)]
+            'matricula' => ['required', 'min:9' , 'max:9', Rule::unique('alumno')->ignore($request->alumno_id)]
         ];
     }
     

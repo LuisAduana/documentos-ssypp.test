@@ -19,14 +19,14 @@ class ProyectoServicioController extends Controller
         $request->validate(ReglasValidaciones::getValidacionesProyectoServicio());
 
         DB::transaction(function () use ($request) {
-            $inscripcion = Inscripcion::where("estado_inscripcion", "DEFAULT")->first();
+            $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
             $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();
             $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
             $proyecto_id = DB::table('proyecto')->insertGetId([
-                'estado' => $request->estado,
-                'inscripcion_id' => $inscripcion->id,
-                'responsable_id' => $responsable->id,
-                'dependencia_id' => $dependencia->id
+                "estado" => $request->estado,
+                "inscripcion_id" => $inscripcion->id,
+                "responsable_id" => $responsable->id,
+                "dependencia_id" => $dependencia->id
             ]);
             ProyectoServicio::create([
                 "num_alumnos" => $request->num_alumnos,
@@ -42,44 +42,50 @@ class ProyectoServicioController extends Controller
         $request->validate(ReglasValidaciones::getValidacionesProyectoServicio());
 
         DB::transaction(function () use ($request) {
-            $responsable = DB::table('responsable')->where('nombre_responsable', $request->nombre_responsable)->first();
-            $dependencia = DB::table('dependencia')->where('nombre_dependencia', $request->nombre_dependencia)->first();
-            DB::update('update proyecto set estado = ?, responsable_id = ?, dependencia_id = ? where id = ?', [
-                $request->estado, $responsable->id, $dependencia->id, $request->id
+            $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();
+            $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
+            
+            Proyecto::where("id", $request->proyecto_id)->update([
+                "estado" => $request->estado,
+                "responsable_id" => $request->responsable_id,
+                "dependencia_id" => $request->dependencia_id
             ]);
-            DB::update('update proyecto_servicio set num_alumnos = ?, actividades = ?, horario = ?, requisitos = ? where id = ?', [
-                $request->num_alumnos, $request->actividades, $request->horario, $request->requisitos, $request->id_proyecto_servicio
+            ProyectoServicio::where("id", $request->id)->update([
+                "num_alumnos" => $request->num_alumnos,
+                "actividades" => $request->actividades,
+                "horario" => $request->horario,
+                "requisitos" => $request->requisitos
             ]);
         });
     }
 
     public function obtenerProyectosServicio(Request $request) {
-        $query = ProyectoServicio::all();
+        $query = ProyectoServicio::get();
 
         $proyectos = array();
         foreach ($query as $proyecto) {
             $localArray = array(
-                'id' => $proyecto->id,
-                'num_alumnos' => $proyecto->num_alumnos,
-                'actividades' => $proyecto->actividades,
-                'horario' => $proyecto->horario,
-                'requisitos' => $proyecto->requisitos,
-                'id_proyecto' => $proyecto->proyecto->id,
-                'estado' => $proyecto->proyecto->estado,
-                'inscripcion_id' => $proyecto->proyecto->inscripcion_id,
-                'responsable_id' => $proyecto->proyecto->responsable_id,
-                'dependencia_id' => $proyecto->proyecto->dependencia_id,
-                'nombre_dependencia' => $proyecto->proyecto->dependencia->nombre_dependencia,
-                'direccion' => $proyecto->proyecto->dependencia->direccion,
-                'nombre_responsable' => $proyecto->proyecto->responsable->nombre_responsable,
+                "id" => $proyecto->id,
+                "num_alumnos" => $proyecto->num_alumnos,
+                "actividades" => $proyecto->actividades,
+                "horario" => $proyecto->horario,
+                "requisitos" => $proyecto->requisitos,
+                "proyecto_id" => $proyecto->proyecto->id,
+                "estado" => $proyecto->proyecto->estado,
+                "inscripcion_id" => $proyecto->proyecto->inscripcion_id,
+                "responsable_id" => $proyecto->proyecto->responsable_id,
+                "dependencia_id"=> $proyecto->proyecto->dependencia_id,
+                "nombre_dependencia" => $proyecto->proyecto->dependencia->nombre_dependencia,
+                "direccion" => $proyecto->proyecto->dependencia->direccion,
+                "nombre_responsable" => $proyecto->proyecto->responsable->nombre_responsable,
             );
             array_push($proyectos, $localArray);
         }
 
-        if ($request->tipo_consulta == "NO ASIGNADO") {
+        if ($request->tipo_consulta == "ACTIVO") {
             $proyectosNoAsignados = array();
             foreach ($proyectos as $proyecto) {
-                if ($proyecto["estado"] == "NO ASIGNADO") {
+                if ($proyecto["estado"] == "ACTIVO") {
                     array_push($proyectosNoAsignados, $proyecto);
                 }
             }

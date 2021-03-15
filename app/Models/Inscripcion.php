@@ -22,7 +22,7 @@ class Inscripcion extends Model
         'inscripcion_inicio',
         'fin_inscripcion',
         'tipo_inscripcion',
-        'estado_inscripcion'
+        'estado'
     ];
 
     public function proyecto()

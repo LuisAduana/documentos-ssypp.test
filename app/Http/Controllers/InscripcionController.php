@@ -12,45 +12,58 @@ use Illuminate\Validation\ValidationException;
 
 class InscripcionController extends Controller
 {
-    public function registrarInscripcion(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesInscripcion());
+  public function registrarInscripcion(Request $request) {
+    $request->validate(ReglasValidaciones::getValidacionesInscripcion());
 
-        $cuenta = Inscripcion::where('estado_inscripcion', 'ACTIVO')->count();
-        if ($cuenta !== 0) {
-            throw ValidationException::withMessages([
-                'inscripcion' => ['Ya existe una inscripción activa.']
-            ]);
-        }
+    DB::transaction(function () use ($request) {
 
-        DB::transaction(function () use ($request) {
-            $id = DB::table('inscripcion')->insertGetId([
-                'token_inscripcion' => $this->generarRandomString(),
-                'inscripcion_inicio' => $request->inscripcion_inicio,
-                'fin_inscripcion' => $request->fin_inscripcion,
-                'tipo_inscripcion' => $request->tipo_inscripcion,
-                'estado_inscripcion' => "ACTIVO"
-            ]);
-            $inscripcion = DB::table('inscripcion')->where('estado_inscripcion', 'DEFAULT')->first();
-            foreach($request->proyectos as $proyecto) {
-                DB::update("update proyecto set estado = 'INSCRIPCION', inscripcion_id = ? where id = ?", [$id, $proyecto["id_proyecto"]]);
-            }
-            $idString = strval($id);
-            $idInscripcion = strval($inscripcion->id);
-            DB::unprepared("create event cambiar_estado_inscripcion on schedule at '".$request->fin_inscripcion."' do begin update inscripcion set estado_inscripcion = 'INACTIVO' where id = ".$idString."; update proyecto set estado = 'NO ASIGNADO', inscripcion_id = ".$idInscripcion." where estado = 'INSCRIPCION' and inscripcion_id = ".$idString."; END");
-        });
-    }
+      $cuenta = Inscripcion::where("estado", "ACTIVO")->count();
+      if ($cuenta !== 0) {
+          throw ValidationException::withMessages([
+            "inscripcion" => "Ya existe una inscripción activa."
+          ]);
+      }
+
+      $usuario = User::where("estado", "INSCRIPCION")->count();
+      if ($usuario !== 0) {
+        throw ValidationException::withMessages([
+          "inscripcion" => "Primero asigne los proyectos a los alumnos antes de registrar otra inscripción."
+        ]);
+      }
+
+      $id = DB::table("inscripcion")->insertGetId([
+          "token_inscripcion" => $this->generarRandomString(),
+          "inscripcion_inicio" => $request->inscripcion_inicio,
+          "fin_inscripcion" => $request->fin_inscripcion,
+          "tipo_inscripcion" => $request->tipo_inscripcion,
+          "estado" => "ACTIVO"
+      ]);
+      $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
+
+      foreach($request->proyectos as $proyecto) {
+        Proyecto::where("id", $proyecto["proyecto_id"])->update([
+          "estado" => "INSCRIPCION",
+          "inscripcion_id" => $id
+        ]);
+      }
+      $idString = strval($id);
+      $idInscripcion = strval($inscripcion->id);
+      DB::unprepared("create event cambiar_estado_inscripcion on schedule at '".$request->fin_inscripcion."' do begin update inscripcion set estado = 'INACTIVO' where id = ".$idString."; update proyecto set estado = 'ACTIVO', inscripcion_id = ".$idInscripcion." where estado = 'INSCRIPCION' and inscripcion_id = ".$idString."; END");
+    });
+  }
 
     public function terminarInscripcion(Request $request) {
+      $request->validate(ReglasValidaciones::getValidacionesCambioEstado());
         DB::transaction(function () use ($request) {
             $proyectos = Proyecto::where("inscripcion_id", $request->id)->get();
-            $inscripcion = Inscripcion::where("estado_inscripcion", "DEFAULT")->first();
+            $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
             foreach($proyectos as $proyecto) {
                 Proyecto::where("estado", "INSCRIPCION")->where("id", $proyecto->id)->update([
-                    "estado" => "NO ASIGNADO",
+                    "estado" => "ACTIVO",
                     "inscripcion_id" => $inscripcion->id
                 ]);
-            }
-            Inscripcion::where("id", $request->id)->update(["estado_inscripcion" => "INACTIVO"]);
+            } 
+            Inscripcion::where("id", $request->id)->update(["estado" => "INACTIVO"]);
             DB::unprepared("DROP EVENT cambiar_estado_inscripcion");
         });
     }
@@ -59,37 +72,36 @@ class InscripcionController extends Controller
         DB::transaction(function () use ($request) {
             $proyectos = Proyecto::where("inscripcion_id", $request->id)->get();
             $users = User::where("estado", "INSCRIPCION")->get();
-            $inscripcion = Inscripcion::where("estado_inscripcion", "DEFAULT")->first();
+            $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
             foreach($proyectos as $proyecto) {
                 Proyecto::where("id", $proyecto->id)->update([
-                    "estado" => "NO ASIGNADO",
+                    "estado" => "ACTIVO",
                     "inscripcion_id" => $inscripcion->id
                 ]);
             }
             foreach($users as $user) {
                 User::where("id", $user->id)->update([
-                    "estado" => "ACTIVO"
+                    "estado" => "CANCELADO"
                 ]);
             }
-            Inscripcion::where("id", $request->id)->update(["estado_inscripcion" => "INACTIVO"]);
+            Inscripcion::where("id", $request->id)->update(["estado" => "INACTIVO"]);
             DB::unprepared("DROP EVENT cambiar_estado_inscripcion");
         });
     }
 
     public function obtenerInscripciones(Request $request) {
-        $inscripciones = DB::table('inscripcion')
-            ->where('estado_inscripcion', 'ACTIVO')
-            ->orWhere('estado_inscripcion', 'INACTIVO')
-            ->get();
-
-        return response()->json($inscripciones, 200);
+        return response()->json(
+            Inscripcion::where("estado", "ACTIVO")
+              ->orWhere("estado", "INACTIVO")
+              ->get(),
+            200);
     }
 
     function generarRandomString() {
         $length = 5;
-        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         $charactersLength = strlen($characters);
-        $randomString = '';
+        $randomString = "";
         for ($i = 0; $i < $length; $i++) {
             $randomString .= $characters[rand(0, $charactersLength - 1)];
         }
