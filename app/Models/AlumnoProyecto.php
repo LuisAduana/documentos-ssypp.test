@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AlumnoProyecto extends Model
 {
-    public $timestamps = false;
+    public $timestamps = true;
     public $table = "alumno_proyecto";
     use HasFactory;
 

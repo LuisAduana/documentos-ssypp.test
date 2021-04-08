@@ -46,7 +46,7 @@ class DependenciaController extends Controller
             "num_us_directos" => $request->num_us_directos,
             "num_us_indirectos" => $request->num_us_indirectos,
             "estado" => $request->estado
-        ]);;
+        ]);
     }
 
     public function obtenerDependencias(Request $request) {

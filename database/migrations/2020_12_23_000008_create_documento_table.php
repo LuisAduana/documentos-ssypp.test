@@ -15,10 +15,9 @@ class CreateDocumentoTable extends Migration
     {
         Schema::create('documento', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_documento', 80);
-            $table->string('ruta_documento', 250);
-            $table->string('tipo_documento', 10);
-            $table->string('estado_documento', 15);
+            $table->string('nombre', 80);
+            $table->string('ruta', 250);
+            $table->string('estado', 15);
             $table->foreignId('alumno_id')->constrained('alumno');
             $table->foreignId('proyecto_id')->constrained('proyecto');
         });

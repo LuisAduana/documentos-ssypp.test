@@ -2,10 +2,12 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
 use App\Http\Controllers\AdministradorController;
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\CoordinadorController;
 use App\Http\Controllers\DependenciaController;
+use App\Http\Controllers\DocumentoController;
 use App\http\Controllers\InscripcionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ResponsableController;
@@ -28,7 +30,12 @@ use App\Http\Controllers\UtilidadesController;
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+  $usuario = $request->user();
+  if ($usuario->rol_usuario == "ALUMNO") {
+    return response()->json(User::with("alumno")->where("id", $usuario->id)->first(), 200);
+  } else {
+    return response()->json(User::with("profesor")->where("id", $usuario->id)->first(), 200);
+  }
 });
 
 Route::prefix('administrador')->group(function() { 
@@ -83,18 +90,37 @@ Route::prefix('coordinador')->group(function() {
     Route::put("activar-desactivar-profesor", [ProfesorController::class, "cambiarEstadoProfesor"]);
 });
 
+Route::prefix('profesor')->group(function () {
+  Route::post('consulta-alumnos', [AlumnoController::class, 'consultarAlumnos']);
+  Route::post('obtener-documentos-alumno', [DocumentoController::class, 'obtenerDocumentosAlumno']);
+  Route::post('descargar-documento-practica', [DocumentoController::class, 'descargarDocumentoPractica']);
+  Route::post('descargar-documento-servicio', [DocumentoController::class, 'descargarDocumentoServicio']);
+  Route::put('modificar-estado-documento', [DocumentoController::class, 'modificarEstadoDocumento']);
+  Route::post('obtener-mensajes', [DocumentoController::class, 'obtenerMensajes']);
+});
+
 Route::prefix('alumno')->group(function() {
     Route::post('registrar-alumno', [AlumnoController::class, 'crearRegistro']);
     Route::post('comprobar-registro', [AlumnoController::class, 'comprobarExistencia']);
     Route::post('validar-registro', [AlumnoController::class, 'validarRegistro']);
+    Route::put('modificar-alumno', [AlumnoController::class, 'modificarAlumno']);
+
+    Route::post('obtener-documentos', [DocumentoController::class, 'obtenerDocumentos']);
+    Route::post('registrar-documento-practica', [DocumentoController::class, 'registrarDocumentoPractica']);
+    Route::post('registrar-documento-servicio', [DocumentoController::class, 'registrarDocumentoServicio']);
+    Route::post('modificar-documento-practica', [DocumentoController::class, 'modificarDocumentoPractica']);
+    Route::post('modificar-documento-servicio', [DocumentoController::class, 'modificarDocumentoServicio']);
+    
 });
 
 Route::prefix('utilidades')->group(function() {
     Route::get('obtener-proyectos-inscripcion', [UtilidadesController::class, 'obtenerProyectosInscripcion']);
     Route::get('obtener-alumnos-asignados-activos', [UtilidadesController::class, 'obtenerAlumnosAsignadosActivos']);
     Route::put('cambiar-password', [UtilidadesController::class, 'cambiarPassword']);
+    Route::post('obtener-informacion-proyecto', [UtilidadesController::class, 'obtenerInformacionProyecto']);
 });
 
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout']);
 Route::post("obtener-informacion-alumno", [LoginController::class, "obtenerInformacionAlumno"]);
+Route::post('obtener-informacion-profesor', [LoginController::class, "obtenerInformacionProfesor"]);

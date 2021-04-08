@@ -165,6 +165,16 @@ class UtilidadesController extends Controller
       return response()->json($respuesta, 200);
     }
 
+    public function obtenerInformacionProyecto(Request $request) {
+      $request->validate(["id" => ["required"]]);
+  
+      return response()->json(
+        DB::transaction(function () use ($request) {
+          return AlumnoProyecto::where("alumno_id", $request->id)->get();
+        })
+      , 200);
+    }
+
     public function obtenerNombresResponsablesPorDependencia(Request $request) {
         $request->validate(["nombre_dependencia" => ["max:230", "min:1"]]);
         if (!$request->has("nombre_dependencia")) {

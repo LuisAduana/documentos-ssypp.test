@@ -26,9 +26,13 @@ class Alumno extends Model
         'profesor_id'
     ];
 
+    public function documento() {
+      return $this->hasOne(Documento::class, "alumno_id");
+    }
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, "users_id");
     }
 
     public function profesor() 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Alumno;
 use App\Models\AlumnoProyecto;
+use App\Models\Documento;
 use App\Models\User;
 use App\Models\Inscripcion;
 use App\Models\Proyecto;
@@ -146,5 +147,62 @@ class AlumnoController extends Controller
         );
         
         return response()->json($resultado, 200);
+    }
+
+    public function modificarAlumno(Request $request) {
+      $this->validate(
+        $request,
+        ReglasValidaciones::getValidacionesModificarAlumno($request),
+        ReglasValidaciones::getMensajesPersonalizados()
+      );
+
+      if (Alumno::where("matricula", $request->matricula)->count() > 0) {
+        $alumno = Alumno::where("matricula", $request->matricula)->first();
+        if ($alumno->id != $request->alumno_id) {
+          throw ValidationException::withMessages([
+            "matricula" => ["La matrícula ya ha sido registrada"]
+          ]);
+        }
+      }
+      DB::transaction(function () use ($request) {
+        User::where("id", $request->id)->update([
+          "correo" => $request->correo,
+          "nombres" => $request->nombres,
+          "apellido_paterno" => $request->apellido_paterno,
+          "apellido_materno" => $request->apellido_materno,
+          "num_contacto" => $request->num_contacto
+        ]);
+        Alumno::where("id", $request->alumno_id)->update([
+          "matricula" => $request->matricula,
+          "bloque" => $request->bloque,
+          "seccion" => $request->seccion
+        ]);
+      });
+    }
+
+    public function consultarAlumnos(Request $request) {
+      $request->validate(["id" => ["required"]]);
+
+      $query = Alumno::where("profesor_id", $request->id)->get();
+      $alumnos = array();
+      foreach ($query as $usuario) {
+        $notificacion = false;
+        if (Documento::where("estado", "ENVIADO")->where("alumno_id", $usuario->id)->count() > 0) {
+          $notificacion = true;
+        }
+        $localArray = array(
+          "id" => $usuario->user->id,
+          "correo" => $usuario->user->correo,
+          "nombres" => $usuario->user->nombres,
+          "apellido_paterno" => $usuario->user->apellido_paterno,
+          "apellido_materno" => $usuario->user->apellido_materno,
+          "num_contacto" => $usuario->user->num_contacto,
+          "alumno_id" => $usuario->id,
+          "matricula" => $usuario->matricula,
+          "notificacion" => $notificacion
+        );
+        array_push($alumnos, $localArray);
+      }
+      return response()->json($alumnos,  200);
     }
 }

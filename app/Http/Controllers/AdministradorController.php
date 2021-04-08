@@ -7,48 +7,56 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AdministradorController extends Controller
 {
     public function registrarCoordinador(Request $request)
     {
-        $rules = [
-            'correo' => 'required|max:150|email|unique:users',
-            'password' => 'required|min:7|max:120',
-            'nombres' => 'required|min:1|max:90',
-            'apellido_paterno' => 'required|min:1|max:45',
-            'apellido_materno' => 'required|min:1|max:45',
-            'estado' => 'required|min:1|max:11',
-            'num_contacto' => 'required|min:1|max:20',
-            'rol_usuario' => 'required|min:1|max:13',
-            'num_personal' => 'required|min:10|max:10|unique:profesor'
-        ];
+      $rules = [
+          'correo' => 'required|max:150|email|unique:users',
+          'password' => 'required|min:7|max:120',
+          'nombres' => 'required|min:1|max:90',
+          'apellido_paterno' => 'required|min:1|max:45',
+          'apellido_materno' => 'required|min:1|max:45',
+          'estado' => 'required|min:1|max:11',
+          'num_contacto' => 'required|min:1|max:20',
+          'rol_usuario' => 'required|min:1|max:13',
+          'num_personal' => 'required|min:10|max:10|unique:profesor'
+      ];
 
-        $customMessages = [
-            'correo.unique' => 'El correo electrónico ya ha sido registrado.',
-            'num_personal.unique' => 'El número de personal ya ha sido registrado.',
-        ];
+      $customMessages = [
+          'correo.unique' => 'El correo electrónico ya ha sido registrado.',
+          'num_personal.unique' => 'El número de personal ya ha sido registrado.',
+      ];
 
-        $this->validate($request, $rules, $customMessages);
+      $this->validate($request, $rules, $customMessages);
 
-        DB::transaction(function () use ($request) {
-            DB::insert(
-                'insert into users (correo, password, nombres, 
-                apellido_paterno, apellido_materno, estado, num_contacto, 
-                rol_usuario) values (?, ?, ?, ?, ?, ?, ?, ?)', [
-                $request->correo, Hash::make($request->password), $request->nombres,
-                $request->apellido_paterno, $request->apellido_materno,
-                $request->estado, $request->num_contacto, $request->rol_usuario
-                ]
-            );
+      $coordinador = User::where("estado", "ACTIVO")->where("rol_usuario", "COORDINADOR")->count();
+      if ($coordinador > 0) {
+          throw ValidationException::withMessages([
+            "registro" => "Ya existe un coordinador activo. Por favor, desactívelo y registre uno nuevo."
+          ]);
+      }
 
-            $id = DB::table('users')->where('correo', $request->correo)->value('id');
+      DB::transaction(function () use ($request) {
+          DB::insert(
+              'insert into users (correo, password, nombres, 
+              apellido_paterno, apellido_materno, estado, num_contacto, 
+              rol_usuario) values (?, ?, ?, ?, ?, ?, ?, ?)', [
+              $request->correo, Hash::make($request->password), $request->nombres,
+              $request->apellido_paterno, $request->apellido_materno,
+              $request->estado, $request->num_contacto, $request->rol_usuario
+              ]
+          );
 
-            DB::insert(
-                'insert into profesor (num_personal, users_id) values (?, ?)',
-                [$request->num_personal, $id]
-            );
-        });
+          $id = DB::table('users')->where('correo', $request->correo)->value('id');
+
+          DB::insert(
+              'insert into profesor (num_personal, users_id) values (?, ?)',
+              [$request->num_personal, $id]
+          );
+      });
     }
 
     public function modificarCoordinador(Request $request) {

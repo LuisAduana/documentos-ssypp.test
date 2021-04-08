@@ -35,6 +35,16 @@ return [
             'root' => storage_path('app'),
         ],
 
+        'documento-practica' => [
+          'driver' => 'local',
+          'root' => storage_path('app/documentos/practicas')
+        ],
+
+        'documento-servicio' => [
+          'driver' => 'local',
+          'root' => storage_path('app/documentos/servicio')
+      ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

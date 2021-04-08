@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Alumno;
 use App\Models\AlumnoProyecto;
+use App\Models\Documento;
+use App\Models\Profesor;
+use App\Models\Proyecto;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -18,42 +23,50 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
-            "correo" => ["required"],
-            "password" => ["required"]
-        ]);
+      $request->validate([
+          "correo" => ["required"],
+          "password" => ["required"]
+      ]);
 
-        $usuario = User::where("correo", $request->correo)->firstOrFail();
-        if(!Hash::check($request->password, $usuario->password)) {
+      $usuario = User::where("correo", $request->correo)->first();
+
+      if (Auth::attempt(["correo" => $request->correo, "password" => $request->password, "estado" => "ACTIVO"])) {
+        return response()->json((object) array("estado" => $usuario->estado, "rol_usuario" => $usuario->rol_usuario), 200);
+      } else {
+        if ($usuario == null || !Hash::check($request->password, $usuario->password)) {
           throw ValidationException::withMessages([
             "correo" => ["Las credenciales son inválidas"]
           ]);
+        } else {
+          return response()->json((object) array("estado" => $usuario->estado), 200);
         }
-
-        if ($usuario->estado == "ACTIVO") {
-          if (Auth::attempt($request->only("correo", "password"))) {
-            return response()->json(Auth::user(), 200);
-          }
-        }
-
-        return response()->json((object) array("estado" => $usuario->estado), 200);
+      }
     }
 
     public function obtenerInformacionAlumno(Request $request) {
-        $usuario = User::where("id", $request->id)->first();
-        $alumno_proyecto = AlumnoProyecto::where("alumno_id", $usuario->alumno->id)->first();
-        $coordinador = User::where("rol_usuario", "COORDINADOR")->first();
-        $informacion = array(
-            "nombres_coordinador" => $coordinador->nombres,
-            "apellido_paterno_coordinador" => $coordinador->apellido_paterno,
-            "apellido_materno_coordinador" => $coordinador->apellido_materno,
-            "correo_coordinador" => $coordinador->correo,
-            "num_coordinador" => $coordinador->num_contacto,
-            "nombre_responsable" => $alumno_proyecto->proyecto->responsable->nombre_responsable,
-            "correo_responsable" => $alumno_proyecto->proyecto->responsable->correo,
-            "num_responsable" => $alumno_proyecto->proyecto->responsable->num_contacto
-        );
-        return response()->json($informacion, 200);
+      $request->validate(["id" => ["required"]]);
+
+      return response()->json(
+        DB::transaction(function () use ($request) {
+          $user = User::with("alumno")->where("id", $request->id)->first();
+          $lastProyect = DB::table("alumno_proyecto")->where("alumno_id", $user->alumno->id)->orderByRaw("created_at DESC")->limit(1)->first();
+          if ($lastProyect->tipo_proyecto == "practicas") {
+            $proyecto = Proyecto::with("proyectoPractica")->with("dependencia")->with("responsable")->where("id", $lastProyect->proyecto_id)->first();
+          } else {
+            $proyecto = Proyecto::with("proyectoServicio")->with("dependencia")->with("responsable")->where("id", $lastProyect->proyecto_id)->first();
+          }
+          // $coordinador = User::where([["rol_usuario", "COORDINADOR"], ["estado", "ACTIVO"]])->first();
+          return array(
+            "proyecto" => $proyecto,
+            // "coordinador" => $coordinador,
+            "tipo_proyecto" => $lastProyect->tipo_proyecto
+          );
+        })
+      , 200);
+    }
+
+    public function obtenerInformacionProfesor(Request $request) {
+      return response()->json(Profesor::where("users_id", $request->id)->first(), 200);
     }
 
     /**

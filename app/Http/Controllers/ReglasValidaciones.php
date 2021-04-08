@@ -37,7 +37,20 @@ class ReglasValidaciones {
         'num_contacto' => ['required', 'min:10', 'max:20'],
         'rol_usuario' => ['required', 'min:1', 'max:13'],
         'num_personal' => ['required', 'min:10', 'max:10', Rule::unique("profesor")->ignore($request->profesor_id)]
-    ];
+      ];
+    }
+
+    public static function getValidacionesModificarAlumno(Request $request) {
+      return [
+        'correo' => ['required', 'max:150', 'email', Rule::unique("users")->ignore($request->id)],
+        'nombres' => ['required', 'min:1', 'max:90'],
+        'apellido_paterno' => ['required', 'min:1', 'max:45'],
+        'apellido_materno' => ['required', 'min:1', 'max:45'],
+        'num_contacto' => ['required', 'min:10', 'max:20'],
+        'matricula' => ['required', 'min:9' , 'max:9'],
+        'bloque' => ['required', 'min:1', 'max:2'],
+        'seccion' => ['required', 'min:1', 'max:1'],
+      ];
     }
 
     public static function getValidacionesAsignarProyecto() {
