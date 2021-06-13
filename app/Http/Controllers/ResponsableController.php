@@ -12,9 +12,11 @@ use Illuminate\Validation\ValidationException;
 class ResponsableController extends Controller
 {
     public function registrarResponsable(Request $request) {
-        $request->validate(
-            ReglasValidaciones::getValidacionesResponsable($request, true)
-        );
+      $this->validate(
+        $request,
+        ReglasValidaciones::getValidacionesResponsable($request, true),
+        ReglasValidaciones::getMensajesPersonalizados()
+      );
 
         DB::transaction(function () use ($request) {
             $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();

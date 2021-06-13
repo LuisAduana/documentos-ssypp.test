@@ -71,6 +71,7 @@ Route::prefix('coordinador')->group(function() {
     Route::put('modificar-estado-proyecto-practica', [ProyectoPracticaController::class, 'cambiarEstadoProyecto']);
 
     Route::get('obtener-alumnos-inscritos', [AlumnoController::class, 'consultarAlumnosInscritos']);
+    Route::get('obtener-alumnos-con-proyecto', [AlumnoController::class, 'consultarAlumnosConProyectos']);
     Route::post('asignar-alumno-proyecto', [AlumnoController::class, 'asignarProyecto']);
 
     Route::get('obtener-inscripciones', [InscripcionController::class, 'obtenerInscripciones']);
@@ -88,6 +89,8 @@ Route::prefix('coordinador')->group(function() {
     Route::put("modificar-profesor", [ProfesorController::class, "modificarProfesor"]);
     Route::put("modificar-alumnos-asignados", [ProfesorController::class, "modificarAlumnosAsignados"]);
     Route::put("activar-desactivar-profesor", [ProfesorController::class, "cambiarEstadoProfesor"]);
+
+    Route::post("obtener-documentos-aceptados-alumno", [DocumentoController::class, "obtenerDocumentosAceptadosAlumno"]);
 });
 
 Route::prefix('profesor')->group(function () {

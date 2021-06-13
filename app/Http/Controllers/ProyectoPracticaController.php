@@ -16,37 +16,45 @@ class ProyectoPracticaController extends Controller
 {
 
     public function registrarProyectoPractica(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesProyectoPractica($request, true));
+      $this->validate(
+          $request,
+          ReglasValidaciones::getValidacionesProyectoPractica($request, true),
+          ReglasValidaciones::getMensajesPersonalizados()
+      );
 
-        DB::transaction(function () use ($request) {
-            $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
-            $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
-            $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();
-            $proyecto_id = DB::table("proyecto")->insertGetId([
-                "estado" => $request->estado,
-                "inscripcion_id" => $inscripcion->id,
-                "dependencia_id" => $dependencia->id,
-                "responsable_id" => $responsable->id
-            ]);
-            ProyectoPractica::create([
-                "nombre_proyecto" => $request->nombre_proyecto,
-                "descripcion_general" => $request->descripcion_general,
-                "objetivo_general" => $request->objetivo_general,
-                "objetivos_inmediatos" => $request->objetivos_inmediatos,
-                "objetivos_mediatos" => $request->objetivos_mediatos,
-                "metodologia" => $request->metodologia,
-                "recursos" => $request->recursos,
-                "actividades_funcionales" => $request->actividades_funcionales,
-                "responsabilidades" => $request->responsabilidades,
-                "duracion" => $request->duracion,
-                "horario" => $request->horario,
-                "proyecto_id"  => $proyecto_id
-            ]);
-        });
+      DB::transaction(function () use ($request) {
+        $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
+        $dependencia = Dependencia::where("nombre_dependencia", $request->nombre_dependencia)->first();
+        $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();
+        $proyecto_id = DB::table("proyecto")->insertGetId([
+            "estado" => $request->estado,
+            "inscripcion_id" => $inscripcion->id,
+            "dependencia_id" => $dependencia->id,
+            "responsable_id" => $responsable->id
+        ]);
+        ProyectoPractica::create([
+            "nombre_proyecto" => $request->nombre_proyecto,
+            "descripcion_general" => $request->descripcion_general,
+            "objetivo_general" => $request->objetivo_general,
+            "objetivos_inmediatos" => $request->objetivos_inmediatos,
+            "objetivos_mediatos" => $request->objetivos_mediatos,
+            "metodologia" => $request->metodologia,
+            "recursos" => $request->recursos,
+            "actividades_funcionales" => $request->actividades_funcionales,
+            "responsabilidades" => $request->responsabilidades,
+            "duracion" => $request->duracion,
+            "horario" => $request->horario,
+            "proyecto_id"  => $proyecto_id
+        ]);
+      });
     }
 
     public function modificarProyectoPractica(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesProyectoPractica($request, false));
+      $this->validate(
+        $request,
+        ReglasValidaciones::getValidacionesProyectoPractica($request, false),
+        ReglasValidaciones::getMensajesPersonalizados()
+      );
 
         DB::transaction(function () use ($request) {
             $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();

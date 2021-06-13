@@ -15,6 +15,7 @@ class CreateProyectoServicioTable extends Migration
     {
         Schema::create('proyecto_servicio', function (Blueprint $table) {
             $table->id();
+            $table->string('nombre_proyecto', 250);
             $table->string('num_alumnos', 45);
             $table->string('actividades', 250);
             $table->string('horario', 100);

@@ -130,9 +130,11 @@ class ReglasValidaciones {
         ];
     }
 
-    public static function getValidacionesProyectoServicio() {
+    public static function getValidacionesProyectoServicio(Request $request, bool $tipo) {
+      $validaciones = self::tipoValidacion($request, $tipo, "proyecto_servicio");
         return [
             'estado' => ['required', 'max:11', 'min:1'],
+            'nombre_proyecto' =>  ['required', 'max:250', 'min:1', $validaciones],
             'nombre_responsable' => ['required', 'max:120', 'min:1'],
             'nombre_dependencia' => ['required', 'max:230', 'min:1'],
             'num_alumnos' => ['required', 'max:45', 'min:1'],
@@ -147,7 +149,7 @@ class ReglasValidaciones {
         return [
             'nombre_responsable' => ['required', 'max:120', 'min:1', $validaciones],
             'cargo' => ['required', 'max:100', 'min:1'],
-            'correo' => ['required', 'email', 'max:130', 'min:1'],
+            'correo' => ['required', 'email', 'max:130', 'min:1', $validaciones],
             'num_contacto' => ['required', 'max:20', 'min:10'],
             'estado' => ['required', 'max:15', 'min:1'],
             'nombre_dependencia' => ['required', 'max:230', 'min:1']
@@ -183,6 +185,7 @@ class ReglasValidaciones {
 
     public static function getMensajesPersonalizados() {
         return [
+            'nombre_proyecto.unique' => 'El nombre del proyecto ya ha sido registrado.',
             'nombre_dependencia.unique' => 'El nombre de la dependencia ya ha sido registrado.',
             'nombre_responsable.unique' => 'El nombre del responsable ya ha sido registrado.',
             'correo.unique' => 'El correo electrónico ya ha sido registrado.',

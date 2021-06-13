@@ -18,6 +18,7 @@ class ProyectoServicio extends Model
      */
     protected $fillable = [
         'id',
+        'nombre_proyecto',
         'num_alumnos',
         'actividades',
         'horario',

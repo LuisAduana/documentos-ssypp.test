@@ -19,6 +19,7 @@ class Documento extends Model
   protected $fillable = [
     'id',
     'nombre',
+    'tipo',
     'ruta',
     'estado',
     'alumno_id',

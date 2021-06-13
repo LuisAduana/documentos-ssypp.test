@@ -15,17 +15,24 @@ use Illuminate\Validation\ValidationException;
 
 class AlumnoController extends Controller
 {
-    public function asignarProyecto(Request $request) {
-      $request->validate(ReglasValidaciones::getValidacionesAsignarProyecto());
-      DB::transaction(function () use ($request) {
-        AlumnoProyecto::create([
-            "tipo_proyecto" => $request->tipo_proyecto,
-            "alumno_id" => $request->alumno_id,
-            "proyecto_id" => $request->proyecto_id
-        ]);
-        User::where("id", $request->id)->update(["estado" => "ASIGNADO"]);
-      });
+  public function asignarProyecto(Request $request) {
+    $request->validate(ReglasValidaciones::getValidacionesAsignarProyecto());
+
+    if (Inscripcion::where("estado", "ACTIVO")->count() > 0) {
+      throw ValidationException::withMessages([
+        "asignacion" => "No se pueden asignar proyectos porque existe una inscripción activa"
+      ]);
     }
+
+    DB::transaction(function () use ($request) {
+      AlumnoProyecto::create([
+          "tipo_proyecto" => $request->tipo_proyecto,
+          "alumno_id" => $request->alumno_id,
+          "proyecto_id" => $request->proyecto_id
+      ]);
+      User::where("id", $request->id)->update(["estado" => "ASIGNADO"]);
+    });
+  }
 
     public function crearRegistro(Request $request) 
     {
@@ -95,27 +102,69 @@ class AlumnoController extends Controller
     }
 
     public function consultarAlumnosInscritos(Request $request) {
-        $users = User::where("estado", "INSCRIPCION")->get();
-        $alumnos = array();
-        foreach ($users as $user) {
-            $localArray = array(
-              "id" => $user->id,
-              "correo" => $user->correo,
-              "nombres" => $user->nombres,
-              "apellido_paterno" => $user->apellido_paterno,
-              "apellido_materno" => $user->apellido_materno,
-              "estado" => $user->estado,
-              "num_contacto" => $user->num_contacto,
-              "rol_usuario" => $user->rol_usuario,
-              "alumno_id" => $user->alumno->id,
-              "matricula" => $user->alumno->matricula,
-              "bloque" => $user->alumno->bloque,
-              "seccion" => $user->alumno->seccion,
-              "proyectos" => $user->alumno->proyectos
-            );
-            array_push($alumnos, $localArray);
-        }
-        return response()->json($alumnos, 200);
+      $users = User::where("estado", "INSCRIPCION")->get();
+      if (sizeof($users) == 0) {
+        throw ValidationException::withMessages([
+          "alumnos" => ["No existen alumnos inscritos."]
+        ]);
+      }
+      $alumnos = array();
+      foreach ($users as $user) {
+          $localArray = array(
+            "id" => $user->id,
+            "correo" => $user->correo,
+            "nombres" => $user->nombres,
+            "apellido_paterno" => $user->apellido_paterno,
+            "apellido_materno" => $user->apellido_materno,
+            "estado" => $user->estado,
+            "num_contacto" => $user->num_contacto,
+            "rol_usuario" => $user->rol_usuario,
+            "alumno_id" => $user->alumno->id,
+            "matricula" => $user->alumno->matricula,
+            "bloque" => $user->alumno->bloque,
+            "seccion" => $user->alumno->seccion,
+            "proyectos" => $user->alumno->proyectos
+          );
+          array_push($alumnos, $localArray);
+      }
+      return response()->json($alumnos, 200);
+    }
+
+    public function consultarAlumnosConProyectos(Request $request) {
+      // DB::table('users')
+      //       ->where('votes', '>', 100)
+      //       ->orWhere(function($query) {
+      //           $query->where('name', 'Abigail')
+      //                 ->where('votes', '>', 50);
+      //       })
+      //       ->get();
+      //$users = User::where("estado", "ACTIVO")->where("estado", "ASIGNADO")->where("rol_usuario", "ALUMNO")->get();
+      $users = User::where("rol_usuario", "ALUMNO")->where(
+        function($query) {
+          $query->where("estado", "ACTIVO")
+          ->orWhere("estado", "ASIGNADO");
+        })
+        ->get();
+      $alumnos = array();
+      foreach ($users as $user) {
+        $localArray = array(
+          "id" => $user->id,
+          "correo" => $user->correo,
+          "nombres" => $user->nombres,
+          "apellido_paterno" => $user->apellido_paterno,
+          "apellido_materno" => $user->apellido_materno,
+          "estado" => $user->estado,
+          "num_contacto" => $user->num_contacto,
+          "rol_usuario" => $user->rol_usuario,
+          "alumno_id" => $user->alumno->id,
+          "matricula" => $user->alumno->matricula,
+          "bloque" => $user->alumno->bloque,
+          "seccion" => $user->alumno->seccion,
+          "proyectos" => $user->alumno->proyectos
+        );
+        array_push($alumnos, $localArray);
+      }
+      return response()->json($alumnos, 200);
     }
 
     public function comprobarExistencia(Request $request) {
@@ -126,8 +175,6 @@ class AlumnoController extends Controller
             return response()->json('Las credenciales son inválidas', 401);
         } else if ($usuario->rol_usuario != 'ALUMNO') {
             return response()->json('Esas credenciales no pertenecen a un alumno', 401);
-        } else if ($usuario->estado == 'ASIGNACION') {
-            return response()->json('Ya te has registrado y te encuentras en proceso de asignación.', 201);
         }
 
         $resultado = array(

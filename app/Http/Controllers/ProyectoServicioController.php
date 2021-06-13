@@ -16,7 +16,11 @@ class ProyectoServicioController extends Controller
 {
 
     public function registrarProyectoServicio(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesProyectoServicio());
+      $this->validate(
+        $request,
+        ReglasValidaciones::getValidacionesProyectoServicio($request, true),
+        ReglasValidaciones::getMensajesPersonalizados()
+      );
 
         DB::transaction(function () use ($request) {
             $inscripcion = Inscripcion::where("estado", "DEFAULT")->first();
@@ -29,6 +33,7 @@ class ProyectoServicioController extends Controller
                 "dependencia_id" => $dependencia->id
             ]);
             ProyectoServicio::create([
+                "nombre_proyecto" => $request->nombre_proyecto,
                 "num_alumnos" => $request->num_alumnos,
                 "actividades" => $request->actividades,
                 "horario" => $request->horario,
@@ -39,7 +44,11 @@ class ProyectoServicioController extends Controller
     }
 
     public function modificarProyectoServicio(Request $request) {
-        $request->validate(ReglasValidaciones::getValidacionesProyectoServicio());
+      $this->validate(
+        $request,
+        ReglasValidaciones::getValidacionesProyectoServicio($request, false),
+        ReglasValidaciones::getMensajesPersonalizados()
+      );
 
         DB::transaction(function () use ($request) {
             $responsable = Responsable::where("nombre_responsable", $request->nombre_responsable)->first();
@@ -51,6 +60,7 @@ class ProyectoServicioController extends Controller
                 "dependencia_id" => $request->dependencia_id
             ]);
             ProyectoServicio::where("id", $request->id)->update([
+                "nombre_proyecto" => $request->nombre_proyecto,
                 "num_alumnos" => $request->num_alumnos,
                 "actividades" => $request->actividades,
                 "horario" => $request->horario,
@@ -66,6 +76,7 @@ class ProyectoServicioController extends Controller
         foreach ($query as $proyecto) {
             $localArray = array(
                 "id" => $proyecto->id,
+                "nombre_proyecto" => $proyecto->nombre_proyecto,
                 "num_alumnos" => $proyecto->num_alumnos,
                 "actividades" => $proyecto->actividades,
                 "horario" => $proyecto->horario,

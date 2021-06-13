@@ -14,6 +14,16 @@ use Illuminate\Validation\ValidationException;
 
 class DocumentoController extends Controller
 {
+  public function obtenerDocumentosAceptadosAlumno(Request $request) {
+    $request->validate(["alumno_id" => "required"]);
+    $documento = Documento::where("alumno_id", $request->alumno_id)->where("estado", "ACEPTADO")->get();
+    if (sizeof($documento) == 0) {
+      throw ValidationException::withMessages([
+        "documentos" => ["El alumno no tiene documentos registrados"]
+      ]);
+    }
+    return response()->json($documento, 200);
+  }
 
   public function registrarDocumentoPractica(Request $request) {
     $request->validate([
@@ -23,20 +33,33 @@ class DocumentoController extends Controller
       "alumno_id" => "required",
       "proyecto_id" => "required"
     ]);
-    $filepath = $request->matricula."/".$request->tipo.".pdf";
+    /*$filepath = $request->matricula."/".$request->tipo.".pdf";
     if (Storage::disk("documento-practica")->exists($filepath)) {
       throw ValidationException::withMessages([
         "documento" => ["El documento ya ha sido registrado"]
       ]);
+    }*/
+    $filepath = $request->matricula."/";
+    $nombreDocumento = $request->tipo;
+    if (Storage::disk("documento-practica")->exists($filepath.$nombreDocumento.".pdf")) {
+      $documento = Documento::where("nombre", $request->tipo)->where("tipo", "servicio")->where("alumno_id", $request->alumno_id)->first();
+      if ($documento->proyecto_id == $request->proyecto_id) {
+        throw ValidationException::withMessages([
+          "documento" => ["El documento ya ha sido registrado"]
+        ]);
+      } else {
+        $nombreDocumento = $request->tipo."(2)";
+      }
     }
+    Storage::disk("documento-practica")->put($filepath.$nombreDocumento.".pdf", file($request->documento));
     $documento = Documento::create([
-      "ruta" => $filepath,
+      "ruta" => $filepath.$nombreDocumento.".pdf",
       "estado" => "ENVIADO",
+      "tipo" => "practica",
       "alumno_id" => $request->alumno_id,
       "proyecto_id" => $request->proyecto_id,
-      "nombre" => $request->tipo,
+      "nombre" => $nombreDocumento,
     ]);
-    Storage::disk("documento-practica")->put($filepath, file($request->documento));
     return response()->json($documento, 200);
   }
 
@@ -48,20 +71,27 @@ class DocumentoController extends Controller
       "alumno_id" => "required",
       "proyecto_id" => "required"
     ]);
-    $filepath = $request->matricula."/".$request->tipo.".pdf";
-    if (Storage::disk("documento-servicio")->exists($filepath)) {
-      throw ValidationException::withMessages([
-        "documento" => ["El documento ya ha sido registrado"]
-      ]);
+    $filepath = $request->matricula."/";
+    $nombreDocumento = $request->tipo;
+    if (Storage::disk("documento-servicio")->exists($filepath.$nombreDocumento.".pdf")) {
+      $documento = Documento::where("nombre", $request->tipo)->where("tipo", "servicio")->where("alumno_id", $request->alumno_id)->first();
+      if ($documento->proyecto_id == $request->proyecto_id) {
+        throw ValidationException::withMessages([
+          "documento" => ["El documento ya ha sido registrado"]
+        ]);
+      } else {
+        $nombreDocumento = $request->tipo."(2)";
+      }
     }
+    Storage::disk("documento-servicio")->put($filepath.$nombreDocumento.".pdf", file($request->documento));
     $documento = Documento::create([
-      "ruta" => $filepath,
+      "ruta" => $filepath.$nombreDocumento.".pdf",
       "estado" => "ENVIADO",
+      "tipo" => "servicio",
       "alumno_id" => $request->alumno_id,
       "proyecto_id" => $request->proyecto_id,
-      "nombre" => $request->tipo,
+      "nombre" => $nombreDocumento,
     ]);
-    Storage::disk("documento-servicio")->put($filepath, file($request->documento));
     return response()->json($documento, 200);
   }
 
