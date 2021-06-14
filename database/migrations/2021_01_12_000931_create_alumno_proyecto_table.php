@@ -20,6 +20,7 @@ class CreateAlumnoProyectoTable extends Migration
             $table->foreignId('alumno_id')->constrained('alumno');
             $table->foreignId('proyecto_id')->constrained('proyecto');
         });
+        
     }
 
     /**
