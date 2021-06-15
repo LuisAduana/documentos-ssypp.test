@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://app.documentos-ssypp.test:8080'],
+    'allowed_origins' => ['http://documentos.ssypp.mx:8080'],
 
     'allowed_origins_patterns' => [],
 
